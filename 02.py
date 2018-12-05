@@ -1,7 +1,7 @@
 #%% [markdown]
 # # Open input data file
 #%%
-with open('02-in.txt','r') as fin:
+with open('input/02-in.txt','r') as fin:
     data = fin.read().split('\n')
 
 #%% [markdown]

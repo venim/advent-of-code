@@ -1,5 +1,5 @@
 #%%
-with open('01-in.txt','r') as fin:
+with open('input/01-in.txt','r') as fin:
     data = fin.readlines()
 
 #%%

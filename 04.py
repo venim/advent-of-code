@@ -1,5 +1,5 @@
 #%%
-with open('04-in.txt','r') as fin:
+with open('input/04-in.txt','r') as fin:
     data = fin.read().split('\n')
 
 data = sorted(data)

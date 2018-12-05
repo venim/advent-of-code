@@ -1,5 +1,5 @@
 #%%
-with open('05-in.txt','r') as fin:
+with open('input/05-in.txt','r') as fin:
     data = fin.read().split('\n')
 
 data = data[0]

@@ -3,7 +3,7 @@
 # ## Day 03
 #%%
 # Open input data file
-with open('03-in.txt','r') as fin:
+with open('input/03-in.txt','r') as fin:
     data = fin.read().split('\n')
 
 #%% 
