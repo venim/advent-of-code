@@ -19,7 +19,7 @@ def process(data, answer=0):
         answer, node, data = process(data, answer)
         nodes.append(node)
     
-    n = sum(nodes[k-1] for k in data[:meta] if k > 0 and k <= len(nodes))
+    n = sum(nodes[k-1] for k in data[:meta] if k <= len(nodes))
     answer += sum(data[:meta])
     return answer, n, data[meta:]
 

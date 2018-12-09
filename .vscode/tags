@@ -1,0 +1,104 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/1620c633/
+01.py	..\\01.py	1;"	kind:file	line:1
+02.py	..\\02.py	1;"	kind:file	line:1
+03.py	..\\03.py	1;"	kind:file	line:1
+04.py	..\\04.py	1;"	kind:file	line:1
+05.py	..\\05.py	1;"	kind:file	line:1
+06.py	..\\06.py	1;"	kind:file	line:1
+07.py	..\\07.py	1;"	kind:file	line:1
+08.py	..\\08.py	1;"	kind:file	line:1
+ID	..\\03.py	/^    ID, x, y, dx, dy = map(int,result.groups())$/;"	kind:variable	line:22
+Part1	..\\06.py	/^Part1 = np.zeros((maxx+1, maxy+1))$/;"	kind:variable	line:44
+Part2	..\\06.py	/^Part2 = np.zeros((maxx+1, maxy+1))$/;"	kind:variable	line:45
+_	..\\04.py	/^    minute, _, guardID, action = result.groups()$/;"	kind:variable	line:21
+_	..\\08.py	/^part1, part2, _ = process(data)$/;"	kind:variable	line:26
+action	..\\04.py	/^    minute, _, guardID, action = result.groups()$/;"	kind:variable	line:21
+answer	..\\02.py	/^        answer = ''$/;"	kind:variable	line:38
+area	..\\06.py	/^    area = len(Part1[np.where(Part1 == i)])$/;"	kind:variable	line:58
+asleep	..\\04.py	/^        asleep = minute$/;"	kind:variable	line:29
+asleep	..\\04.py	/^asleep = 0$/;"	kind:variable	line:15
+best	..\\02.py	/^            best = (differences, answer)$/;"	kind:variable	line:46
+best	..\\02.py	/^best = None$/;"	kind:variable	line:34
+cell	..\\03.py	/^            cell = (r,c)$/;"	kind:variable	line:26
+coordinates	..\\06.py	/^coordinates = []$/;"	kind:variable	line:14
+data	..\\01.py	/^    data = fin.readlines()$/;"	kind:variable	line:3
+data	..\\02.py	/^    data = fin.read().split('\\n')$/;"	kind:variable	line:5
+data	..\\03.py	/^    data = fin.read().split('\\n')$/;"	kind:variable	line:7
+data	..\\04.py	/^    data = fin.read().split('\\n')$/;"	kind:variable	line:3
+data	..\\04.py	/^data = sorted(data)$/;"	kind:variable	line:5
+data	..\\05.py	/^    data = fin.read().split('\\n')$/;"	kind:variable	line:3
+data	..\\05.py	/^data = data[0]$/;"	kind:variable	line:5
+data	..\\06.py	/^    data = fin.read().split('\\n')$/;"	kind:variable	line:3
+data	..\\07.py	/^    data = fin.read().split('\\n')$/;"	kind:variable	line:3
+data	..\\08.py	/^    data = fin.read().split('\\n')$/;"	kind:variable	line:3
+data	..\\08.py	/^    data = list(map(int,data[0].split()))$/;"	kind:variable	line:5
+differences	..\\02.py	/^        differences = 0$/;"	kind:variable	line:37
+distance	..\\06.py	/^def distance(coordinates, r, c,):$/;"	kind:function	line:25
+dx	..\\03.py	/^    ID, x, y, dx, dy = map(int,result.groups())$/;"	kind:variable	line:22
+dy	..\\03.py	/^    ID, x, y, dx, dy = map(int,result.groups())$/;"	kind:variable	line:22
+elfIDs	..\\03.py	/^elfIDs = set()$/;"	kind:variable	line:16
+fabric	..\\03.py	/^fabric = {}$/;"	kind:variable	line:15
+filtered	..\\05.py	/^    filtered = part1.replace(unit,'').replace(unit.upper(),'')$/;"	kind:variable	line:32
+filtered	..\\05.py	/^    filtered = reduce(filtered)$/;"	kind:variable	line:33
+finished	..\\07.py	/^finished = ''$/;"	kind:variable	line:44
+found	..\\01.py	/^            found = True$/;"	kind:variable	line:16
+found	..\\01.py	/^found = False$/;"	kind:variable	line:8
+frequencies	..\\01.py	/^frequencies = set([result])$/;"	kind:variable	line:7
+guard	..\\04.py	/^        guard = guardID$/;"	kind:variable	line:25
+guard	..\\04.py	/^guard = 0$/;"	kind:variable	line:14
+guardID	..\\04.py	/^    minute, _, guardID, action = result.groups()$/;"	kind:variable	line:21
+guards	..\\04.py	/^guards = {}$/;"	kind:variable	line:13
+instructions	..\\07.py	/^instructions = ''$/;"	kind:variable	line:19
+letters	..\\02.py	/^    letters = {k:v for k,v in letters.items() if v==2 or v==3}$/;"	kind:variable	line:23
+letters	..\\02.py	/^    letters = {}$/;"	kind:variable	line:16
+maxarea	..\\06.py	/^        maxarea = area$/;"	kind:variable	line:60
+maxarea	..\\06.py	/^maxarea = 0$/;"	kind:variable	line:56
+maxx	..\\06.py	/^        maxx = v[0]$/;"	kind:variable	line:21
+maxx	..\\06.py	/^maxx = 0$/;"	kind:variable	line:15
+maxy	..\\06.py	/^        maxy = v[1]$/;"	kind:variable	line:23
+maxy	..\\06.py	/^maxy = 0$/;"	kind:variable	line:16
+minimum	..\\05.py	/^        minimum = len(filtered)$/;"	kind:variable	line:35
+minimum	..\\05.py	/^minimum = len(part1)$/;"	kind:variable	line:27
+minute	..\\04.py	/^    minute = int(minute)$/;"	kind:variable	line:22
+minute	..\\04.py	/^    minute, _, guardID, action = result.groups()$/;"	kind:variable	line:21
+noninfinite	..\\06.py	/^noninfinite = set(range(len(coordinates)))$/;"	kind:variable	line:51
+np	..\\04.py	/^import numpy as np$/;"	kind:namespace	line:10
+np	..\\06.py	/^import numpy as np$/;"	kind:namespace	line:43
+overlap	..\\03.py	/^overlap = 0$/;"	kind:variable	line:34
+parser	..\\03.py	/^parser = re.compile('#(\\d*) @ (\\d*),(\\d*): (\\d*)x(\\d*)')$/;"	kind:variable	line:13
+parser	..\\04.py	/^parser = re.compile('\\[\\d+-\\d+-\\d+ \\d+:(\\d+)\\] (Guard #(\\d+) )?(.*)')$/;"	kind:variable	line:11
+part1	..\\05.py	/^part1 = reduce(data)$/;"	kind:variable	line:26
+part1	..\\07.py	/^part1 = set(steps)$/;"	kind:variable	line:21
+part1	..\\08.py	/^part1, part2, _ = process(data)$/;"	kind:variable	line:26
+part2	..\\07.py	/^part2 = set(steps)$/;"	kind:variable	line:41
+part2	..\\08.py	/^part1, part2, _ = process(data)$/;"	kind:variable	line:26
+potential	..\\07.py	/^    potential = sorted([step for step in part1 if step not in prereq1.keys()])$/;"	kind:variable	line:24
+potential	..\\07.py	/^    potential = sorted([step for step in part2 if step not in prereq2.keys() and step not in [wo/;"	kind:variable	line:47
+prereq	..\\07.py	/^prereq = {}$/;"	kind:variable	line:7
+prereq1	..\\07.py	/^prereq1 = {k:set(v) for k,v in prereq.items()}$/;"	kind:variable	line:22
+prereq2	..\\07.py	/^prereq2 = {k:set(v) for k,v in prereq.items()}$/;"	kind:variable	line:42
+process	..\\08.py	/^def process(data, answer=0):$/;"	kind:function	line:8
+queue	..\\07.py	/^queue = []$/;"	kind:variable	line:43
+reduce	..\\05.py	/^def reduce(data):$/;"	kind:function	line:7
+result	..\\01.py	/^        result = eval('%d%s' %(result, d.strip('\\n')))$/;"	kind:variable	line:11
+result	..\\01.py	/^result = 0$/;"	kind:variable	line:6
+result	..\\03.py	/^    result = parser.search(elf)$/;"	kind:variable	line:18
+result	..\\04.py	/^    result = parser.search(line)$/;"	kind:variable	line:18
+sleepiestGuard	..\\04.py	/^sleepiestGuard = max(guards.items(), key=lambda item: len(item[1][item[1]>0]))[0]$/;"	kind:variable	line:34
+sleepiestMinute	..\\04.py	/^sleepiestMinute = max(guards.items(), key = lambda item: max(item[1]))[0]$/;"	kind:variable	line:38
+step	..\\07.py	/^                step = queue.pop(0)$/;"	kind:variable	line:55
+step	..\\07.py	/^    step = potential[0]$/;"	kind:variable	line:25
+steps	..\\07.py	/^steps = set()$/;"	kind:variable	line:8
+t	..\\07.py	/^t = 0$/;"	kind:variable	line:39
+v	..\\06.py	/^    v = list(map(int,v.split(', ')))$/;"	kind:variable	line:18
+winners	..\\02.py	/^winners = {$/;"	kind:variable	line:11
+worker	..\\07.py	/^                worker = workers[i] = (ord(step)-65+60+t, step)$/;"	kind:variable	line:56
+workers	..\\07.py	/^workers = [None for i in range(5)]$/;"	kind:variable	line:40
+x	..\\03.py	/^    ID, x, y, dx, dy = map(int,result.groups())$/;"	kind:variable	line:22
+y	..\\03.py	/^    ID, x, y, dx, dy = map(int,result.groups())$/;"	kind:variable	line:22
