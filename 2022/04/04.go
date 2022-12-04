@@ -11,54 +11,30 @@ import (
 //go:embed in.txt
 var input string
 
-func makeSet(sections string) map[int64]bool {
-	set := make(map[int64]bool, 10)
+func parseSections(sections string) (int64, int64) {
 	parts := strings.Split(sections, "-")
 	start, _ := strconv.ParseInt(parts[0], 10, 64)
 	end, _ := strconv.ParseInt(parts[1], 10, 64)
-	for i := start; i <= end; i++ {
-		set[i] = true
-	}
-	return set
-}
-func compareSize(a, b map[int64]bool) (big, small map[int64]bool) {
-	if len(a) > len(b) {
-		big = a
-		small = b
-	} else {
-		small = a
-		big = b
-	}
-	return big, small
+	return start, end
 }
 
-func containsSet(a, b map[int64]bool) bool {
-	big, small := compareSize(a, b)
-
-	for i := range small {
-		if _, ok := big[i]; !ok {
-			return false
-		}
-	}
-	return true
+func containsSet(a, b string) bool {
+	i, j := parseSections(a)
+	x, y := parseSections(b)
+	return i <= x && j >= y || x <= i && y >= j
 }
 
-func setsOverlap(a, b map[int64]bool) bool {
-	big, small := compareSize(a, b)
-
-	for i := range small {
-		if _, ok := big[i]; ok {
-			return true
-		}
-	}
-	return false
+func setsOverlap(a, b string) bool {
+	i, j := parseSections(a)
+	x, y := parseSections(b)
+	return i <= y && x <= j
 }
 
 func part2() {
 	var sum int
 	for _, line := range strings.Split(input, "\n") {
 		sets := strings.Split(line, ",")
-		if setsOverlap(makeSet(sets[0]), makeSet(sets[1])) {
+		if setsOverlap(sets[0], sets[1]) {
 			sum++
 		}
 	}
@@ -69,11 +45,10 @@ func part1() {
 	var sum int
 	for _, line := range strings.Split(input, "\n") {
 		sets := strings.Split(line, ",")
-		if containsSet(makeSet(sets[0]), makeSet(sets[1])) {
+		if containsSet(sets[0], sets[1]) {
 			sum++
 		}
 	}
-
 	fmt.Printf("[Part 1] = %d\n", sum)
 }
 
