@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/golang-collections/collections/stack"
 )
 
 var (
@@ -45,40 +43,43 @@ func parseMove(line string) (n, from, to int) {
 	return atoi(parts[1]), atoi(parts[3]), atoi(parts[5])
 }
 
+func pop[T any](s []T) (T, []T) {
+	if n := len(s); n > 0 {
+		return s[n-1], s[:n-1]
+	}
+	return *new(T), []T{}
+}
+
 type board struct {
-	stack []stack.Stack
+	b [][]string
 }
 
 func (b board) move(n, from, to int) {
-	for i := 0; i < n; i++ {
-		v := b.stack[from-1].Pop()
-		if v == nil {
-			continue
+	if l := len(b.b[from-1]); n <= l {
+		v := b.b[from-1][l-n:]
+		// reverse slice
+		for i, j := 0, len(v)-1; i < j; i, j = i+1, j-1 {
+			v[i], v[j] = v[j], v[i]
 		}
-		b.stack[to-1].Push(v)
+		b.b[to-1] = append(b.b[to-1], v...)
+		b.b[from-1] = b.b[from-1][:l-n]
 	}
 }
 
 func (b board) moveMultiple(n, from, to int) {
-	tmp := make([]any, 0, b.stack[from-1].Len())
-	for i := 0; i < n; i++ {
-		v := b.stack[from-1].Pop()
-		if v == nil {
-			continue
-		}
-		tmp = append(tmp, v)
-	}
-	for i := len(tmp) - 1; i >= 0; i-- {
-		b.stack[to-1].Push(tmp[i])
+	if l := len(b.b[from-1]); n <= l {
+		v := b.b[from-1][l-n:]
+		b.b[to-1] = append(b.b[to-1], v...)
+		b.b[from-1] = b.b[from-1][:l-n]
 	}
 }
 
 func (b board) makeResult() (res string) {
-	for _, s := range b.stack {
-		v := s.Pop()
+	for _, s := range b.b {
+		v, _ := pop(s)
 
-		if v != nil {
-			res += v.(string)
+		if v != "" {
+			res += v
 		} else {
 			res += " "
 		}
@@ -86,19 +87,9 @@ func (b board) makeResult() (res string) {
 	return
 }
 
-func makeStacks(board [][]string) []stack.Stack {
-	stacks := make([]stack.Stack, len(board))
-	for i, row := range board {
-		for _, v := range row {
-			stacks[i].Push(v)
-		}
-	}
-	return stacks
-}
-
 func part1(lines []string) string {
 	i, b := parseBoard(lines)
-	stacks := board{makeStacks(b)}
+	stacks := board{b}
 	for _, line := range lines[i+1:] {
 		if line == "" {
 			continue
@@ -110,7 +101,7 @@ func part1(lines []string) string {
 
 func part2(lines []string) string {
 	i, b := parseBoard(lines)
-	stacks := board{makeStacks(b)}
+	stacks := board{b}
 	for _, line := range lines[i+1:] {
 		if line == "" {
 			continue
