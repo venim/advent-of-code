@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -53,99 +54,51 @@ func (r *rope) moveHead(dir string) {
 
 func (r *rope) moveTails() {
 	for i := 1; i < len(r.Knots); i++ {
-		var head pos
-		if i == 0 {
-			continue
-		} else {
-			head = r.Knots[i-1].Pos
-		}
-		// newPos :=
-		r.Knots[i].Pos = moveTailPos(head, r.Knots[i].Pos)
+		r.Knots[i].Pos = moveTailPos(r.Knots[i-1].Pos, r.Knots[i].Pos)
 		r.Knots[i].Places[r.Knots[i].Pos] = struct{}{}
 	}
+}
+
+func toInt(b bool) (i int) {
+	if b {
+		i = 1
+	}
+	return
 }
 
 func moveTailPos(head pos, tail pos) pos {
 	dx := head.X - tail.X
 	dy := head.Y - tail.Y
-	switch dx {
-	case 0:
-		switch dy {
-		case 2:
-			tail.Y++
-		case -2:
-			tail.Y--
-		}
-	case 1:
-		switch dy {
-		case 2:
-			tail.X++
-			tail.Y++
-		case -2:
-			tail.X++
-			tail.Y--
-		}
-	case 2:
-		switch dy {
-		case 0:
-			tail.X++
-		case 1, 2:
-			tail.X++
-			tail.Y++
-		case -1, -2:
-			tail.X++
-			tail.Y--
-		}
-	case -1:
-		switch dy {
-		case 2:
-			tail.X--
-			tail.Y++
-		case -2:
-			tail.X--
-			tail.Y--
-		}
-	case -2:
-		switch dy {
-		case 0:
-			tail.X--
-		case 1, 2:
-			tail.X--
-			tail.Y++
-		case -1, -2:
-			tail.X--
-			tail.Y--
-		}
+
+	if math.Hypot(float64(dx), float64(dy)) >= 2 {
+		tail.X += toInt(dx > 0) - toInt(dx < 0)
+		tail.Y += toInt(dy > 0) - toInt(dy < 0)
 	}
 	return tail
 }
 
-// func (r *rope) draw() {
-// 	n := 10
-// 	lines := make([]string, n*2+1)
-// 	for i := -n*2 + 1; i < 1; i++ {
-// 		line := make([]rune, n*2+1)
-// 		for j := -n; j <= n; j++ {
-// 			line[j+n] = '.'
-// 			if _, ok := r.Knots[1].Places[pos{i, j}]; ok {
-// 				line[j+n] = '#'
-// 			}
-// 			if i == 0 && j == 0 {
-// 				line[j+n] = 's'
-// 			}
-// 			if r.Knots[1].Pos.X == i && r.Knots[1].Pos.Y == j {
-// 				line[j+n] = 'T'
-// 			}
-// 			if r.Knots[0].Pos.X == i && r.Knots[0].Pos.Y == j {
-// 				line[j+n] = 'H'
-// 			}
-// 		}
-// 		lines[i+n*2] = string(line)
-
-// 	}
-// 	fmt.Printf("%s\n\n", strings.Join(lines, "\n"))
-// 	time.Sleep(10 * time.Millisecond)
-// }
+func (r *rope) draw(n int) {
+	for i := -n*2 + 1; i < 1; i++ {
+		line := make([]rune, n*2+1)
+		for j := -n; j <= n; j++ {
+			line[j+n] = '.'
+			if _, ok := r.Knots[len(r.Knots)-1].Places[pos{i, j}]; ok {
+				line[j+n] = '#'
+			}
+			if i == 0 && j == 0 {
+				line[j+n] = 's'
+			}
+			for k := len(r.Knots) - 1; k >= 1; k-- {
+				if r.Knots[1].Pos.X == i && r.Knots[1].Pos.Y == j {
+					line[j+n] += rune(k + 48)
+				}
+			}
+			if r.Knots[0].Pos.X == i && r.Knots[0].Pos.Y == j {
+				line[j+n] = 'H'
+			}
+		}
+	}
+}
 
 func mustAtoi(s string) int {
 	i, _ := strconv.Atoi(s)

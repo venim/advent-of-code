@@ -40,62 +40,58 @@ func TestGeneric(t *testing.T) {
 	}
 }
 
-// func TestMoveHead(t *testing.T) {
-// 	tests := []struct {
-// 		r   rope
-// 		dir string
-// 		res rope
-// 	}{
-// 		{
-// 			rope{knot{Pos: pos{1, 0}}, knot{Pos: pos{0, 0}, Places: make(map[[2]int]struct{})}},
-// 			"R",
-// 			rope{knot{Pos: pos{2, 0}}, knot{Pos: pos{1, 0}}},
-// 		},
-// 		{
-// 			rope{knot{Pos: pos{4, 0}}, knot{Pos: pos{3, 0}, Places: make(map[[2]int]struct{})}},
-// 			"U",
-// 			rope{knot{Pos: pos{4, 1}}, knot{Pos: pos{3, 0}}},
-// 		},
-// 		{
-// 			rope{knot{Pos: pos{4, 1}}, knot{Pos: pos{3, 0}, Places: make(map[[2]int]struct{})}},
-// 			"U",
-// 			rope{knot{Pos: pos{4, 2}}, knot{Pos: pos{4, 1}}},
-// 		},
-// 		{
-// 			rope{knot{Pos: pos{4, 1}}, knot{Pos: pos{3, 0}, Places: make(map[[2]int]struct{})}},
-// 			"L",
-// 			rope{knot{Pos: pos{3, 1}}, knot{Pos: pos{3, 0}}},
-// 		},
-// 		{
-// 			rope{knot{Pos: pos{4, 1}}, knot{Pos: pos{3, 0}, Places: make(map[[2]int]struct{})}},
-// 			"D",
-// 			rope{knot{Pos: pos{4, 0}}, knot{Pos: pos{3, 0}}},
-// 		},
-// 	}
-// 	for _, tc := range tests {
-// 		t.Run("", func(t *testing.T) {
-// 			tc.r.moveHead(tc.dir)
-// 			if diff := compareHead(tc.r, tc.res); diff != "" {
-// 				t.Error(diff)
-// 			}
-// 			if diff := compareTail(tc.r, tc.res); diff != "" {
-// 				t.Error(diff)
-// 			}
-// 		})
-// 	}
-// }
-
-// func compareHead(r1, r2 rope) string {
-// 	got := r1.h.Pos
-// 	want := r2.h.Pos
-// 	return cmp.Diff(want, got)
-// }
-
-// func compareTail(r1, r2 rope) string {
-// 	got := r1.t.Pos
-// 	want := r2.t.Pos
-// 	return cmp.Diff(want, got)
-// }
+func testRopes(n int, ps ...pos) (r rope) {
+	r = newRope(n)
+	for i, p := range ps {
+		r.Knots[i].Pos = p
+	}
+	return
+}
+func TestMoveHead(t *testing.T) {
+	tests := []struct {
+		dir  string
+		got  rope
+		want rope
+	}{
+		{
+			"R",
+			testRopes(1, pos{1, 0}, pos{0, 0}),
+			testRopes(1, pos{2, 0}, pos{1, 0}),
+		},
+		{
+			"U",
+			testRopes(1, pos{4, 0}, pos{3, 0}),
+			testRopes(1, pos{4, 1}, pos{3, 0}),
+		},
+		{
+			"U",
+			testRopes(1, pos{4, 1}, pos{3, 0}),
+			testRopes(1, pos{4, 2}, pos{4, 1}),
+		},
+		{
+			"L",
+			testRopes(1, pos{4, 1}, pos{3, 0}),
+			testRopes(1, pos{3, 1}, pos{3, 0}),
+		},
+		{
+			"D",
+			testRopes(1, pos{4, 1}, pos{3, 0}),
+			testRopes(1, pos{4, 0}, pos{3, 0}),
+		},
+	}
+	for _, tc := range tests {
+		t.Run("", func(t *testing.T) {
+			tc.got.moveHead(tc.dir)
+			for i, knot := range tc.got.Knots {
+				got := knot.Pos
+				want := tc.want.Knots[i].Pos
+				if diff := cmp.Diff(want, got); diff != "" {
+					t.Errorf("knot %d mismatch\n%s", i, diff)
+				}
+			}
+		})
+	}
+}
 
 func TestPart1(t *testing.T) {
 	tests := []struct {
