@@ -39,7 +39,7 @@ func TestPart1(t *testing.T) {
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 			grid, start, end, _ := makeGrid(tc.input)
-			got := findPath(grid, []pos{start}, end)
+			got := findPath(grid, []node{{start, 0}}, end)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Error(diff)
 			}
@@ -57,8 +57,8 @@ func TestPart2(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
-			grid, _, end, as := makeGrid(tc.input)
-			got := findPath(grid, as, end)
+			grid, _, end, starts := makeGrid(tc.input)
+			got := findPath(grid, starts, end)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Error(diff)
 			}

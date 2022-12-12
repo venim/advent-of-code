@@ -28,12 +28,8 @@ func mustAtoi(s string) int {
 	return i
 }
 
-func findPath(grid [][]byte, starts []pos, end pos) int {
+func findPath(grid [][]byte, q []node, end pos) int {
 	seen := make(map[pos]struct{})
-	q := make([]node, 0, len(starts))
-	for _, n := range starts {
-		q = append(q, node{n, 0})
-	}
 	for len(q) > 0 {
 		n := q[0]
 		q = q[1:]
@@ -60,7 +56,7 @@ func findPath(grid [][]byte, starts []pos, end pos) int {
 	return -1
 }
 
-func makeGrid(lines []string) (grid [][]byte, start pos, end pos, as []pos) {
+func makeGrid(lines []string) (grid [][]byte, start pos, end pos, starts []node) {
 	grid = make([][]byte, len(lines))
 	for i := 0; i < len(lines); i++ {
 		grid[i] = make([]byte, len(lines[0]))
@@ -73,8 +69,8 @@ func makeGrid(lines []string) (grid [][]byte, start pos, end pos, as []pos) {
 			case byte('E'):
 				grid[i][j] = 'z'
 				end = pos{i, j}
-			case byte('a'):
-				as = append(as, pos{i, j})
+			case byte('b'):
+				starts = append(starts, node{pos{i, j}, 1})
 			}
 		}
 	}
@@ -91,15 +87,15 @@ func main() {
 		t time.Time
 	)
 	lines := strings.Split(input, "\n")
-	grid, start, end, as := makeGrid(lines)
+	grid, start, end, starts := makeGrid(lines)
 
 	t = time.Now()
-	part1 := findPath(grid, []pos{start}, end)
+	part1 := findPath(grid, []node{{start, 0}}, end)
 	glog.Infof("[Part 1] = %v", part1)
 	glog.Infof("took %s\n\n", time.Since(t))
 
 	t = time.Now()
-	part2 := findPath(grid, as, end)
+	part2 := findPath(grid, starts, end)
 	glog.Infof("[Part 2] = %v", part2)
 	glog.Infof("took %s\n\n", time.Since(t))
 }
