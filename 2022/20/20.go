@@ -28,17 +28,12 @@ type node struct {
 
 type file struct {
 	Head *node
+	Zero *node
 	Len  int
 }
 
-func (f *file) getAfter(v, n int) int {
-	cur := f.Head
-	for {
-		cur = cur.Child
-		if cur.V == v {
-			break
-		}
-	}
+func (f *file) get(n int) int {
+	cur := f.Zero
 	for i := 0; i < n%(f.Len); i++ {
 		cur = cur.Child
 	}
@@ -71,50 +66,30 @@ func (f *file) mix(order []*node) {
 	}
 }
 
-func (f *file) rShift(n *node) {
-	c := n.Child
-	p := n.Parent
-
-	p.Child = c
-	c.Parent = p
-	c.Child.Parent = n
-	n.Child = c.Child
-	c.Child = n
-	n.Parent = c
-
-	if f.Head == n {
-		f.Head = c
-	}
-}
-
-func (f *file) lShift(n *node) {
-	c := n.Child
-	p := n.Parent
-
-	c.Parent = p
-	p.Child = c
-	p.Parent.Child = n
-	n.Parent = p.Parent
-	p.Parent = n
-	n.Child = p
-
-	if f.Head == n {
-		f.Head = p
-	}
-}
-
 func (f *file) shift(n *node) {
 	v := n.V % (f.Len - 1)
 
+	n.Parent.Child = n.Child
+	n.Child.Parent = n.Parent
+
+	p := n.Parent
+	c := n.Child
+
 	if v > 0 {
 		for i := 0; i < v; i++ {
-			f.rShift(n)
+			p = p.Child
+			c = c.Child
 		}
 	} else if v < 0 {
 		for i := v; i < 0; i++ {
-			f.lShift(n)
+			p = p.Parent
+			c = c.Parent
 		}
 	}
+	p.Child = n
+	n.Parent = p
+	n.Child = c
+	c.Parent = n
 }
 
 func makeFile(lines []string, key int) *file {
@@ -124,12 +99,14 @@ func makeFile(lines []string, key int) *file {
 	for i, l := range lines {
 		n = &node{Parent: cur, V: mustAtoi(l) * key}
 		if i == 0 {
-			cur = n
 			f.Head = n
-			continue
+		} else {
+			cur.Child = n
 		}
-		cur.Child = n
 		cur = n
+		if n.V == 0 {
+			f.Zero = n
+		}
 	}
 	cur.Child = f.Head
 	f.Head.Parent = cur
@@ -140,7 +117,7 @@ func part1(lines []string) (res int) {
 	f := makeFile(lines, 1)
 	f.mix(f.slice())
 	for _, i := range []int{1000, 2000, 3000} {
-		res += f.getAfter(0, i)
+		res += f.get(i)
 	}
 	return
 }
@@ -152,7 +129,7 @@ func part2(lines []string) (res int) {
 		f.mix(order)
 	}
 	for _, i := range []int{1000, 2000, 3000} {
-		res += f.getAfter(0, i)
+		res += f.get(i)
 	}
 	return
 }
