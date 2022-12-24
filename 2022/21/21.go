@@ -20,30 +20,79 @@ func mustAtoi(s string) int {
 	return i
 }
 
+func op(op string, monkeys map[string]*monkey, m ...string) *int {
+	var res int
+	switch op {
+	case "+":
+		res = *monkeys[m[0]].N + *monkeys[m[1]].N
+	case "-":
+		res = *monkeys[m[0]].N - *monkeys[m[1]].N
+	case "*":
+		res = *monkeys[m[0]].N * *monkeys[m[1]].N
+	case "/":
+		res = *monkeys[m[0]].N / *monkeys[m[1]].N
+	default:
+		return nil
+	}
+	return &res
+}
+
+func inv(op string, c, b, i int) int {
+	switch op {
+	case "+":
+		return c - b
+	case "-":
+		if i == 0 {
+			return b - c
+		}
+		return c + b
+	case "*":
+		return c / b
+	case "/":
+		return c * b
+	}
+	return -1
+}
+
 type monkey struct {
-	ID      string
-	N       int
+	ID string
+	// use pointer to int to enable N==nil check to determine if the monkey knows
+	// what value to shout, or if it depends on others
+	N       *int
 	Monkeys []string
 	Op      string
+	X       bool
 }
 
 func (m *monkey) calc(monkeys map[string]*monkey) {
+	if m.X {
+		return
+	}
 	if m.Monkeys != nil {
-		m1 := monkeys[m.Monkeys[0]]
-		m2 := monkeys[m.Monkeys[1]]
-		m1.calc(monkeys)
-		m2.calc(monkeys)
-		switch m.Op {
-		case "+":
-			m.N = m1.N + m2.N
-		case "-":
-			m.N = m1.N - m2.N
-		case "*":
-			m.N = m1.N * m2.N
-		case "/":
-			m.N = m1.N / m2.N
+		for _, c := range m.Monkeys {
+			monkeys[c].calc(monkeys)
+		}
+		for _, c := range m.Monkeys {
+			if monkeys[c].N == nil {
+				return
+			}
+		}
+		m.N = op(m.Op, monkeys, m.Monkeys...)
+	}
+}
+
+func (m *monkey) findX(monkeys map[string]*monkey, want int) int {
+	if m.X {
+		return want
+	}
+	for i, c := range m.Monkeys {
+		mc := monkeys[c]
+		if monkeys[c].N != nil {
+			want = inv(m.Op, want, *mc.N, i)
+			return monkeys[m.Monkeys[(i+1)%2]].findX(monkeys, want)
 		}
 	}
+	return -1
 }
 
 func parseMonkey(line string) *monkey {
@@ -57,7 +106,7 @@ func parseMonkey(line string) *monkey {
 		m.Monkeys = []string{parts[0], parts[2]}
 		m.Op = parts[1]
 	} else {
-		m.N = n
+		m.N = &n
 	}
 	return m
 }
@@ -69,7 +118,7 @@ func part1(lines []string) (res int) {
 		monkeys[m.ID] = m
 	}
 	monkeys["root"].calc(monkeys)
-	return monkeys["root"].N
+	return *monkeys["root"].N
 }
 
 func part2(lines []string) (res int) {
@@ -78,15 +127,15 @@ func part2(lines []string) (res int) {
 		m := parseMonkey(line)
 		monkeys[m.ID] = m
 	}
-
-	// for i := 1; i < math.MaxInt; i++ {
-	// 	monkeys["humn"].N = i
-	// 	m := monkeys["root"]
-	// 	m.calc(monkeys)
-	// 	if monkeys[m.Monkeys[0]].N == monkeys[m.Monkeys[1]].N {
-	// 		return i
-	// 	}
-	// }
+	monkeys["humn"].X = true
+	monkeys["humn"].N = nil
+	m := monkeys["root"]
+	m.calc(monkeys)
+	for i, c := range m.Monkeys {
+		if monkeys[c].N != nil {
+			return monkeys[m.Monkeys[(i+1)%2]].findX(monkeys, *monkeys[c].N)
+		}
+	}
 	return -1
 }
 

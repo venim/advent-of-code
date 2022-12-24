@@ -33,7 +33,7 @@ func TestPart1(t *testing.T) {
 		want  int
 	}{
 		{strings.Split(test, "\n"), 152},
-		{strings.Split(input, "\n"), 152},
+		{strings.Split(input, "\n"), 80326079210554},
 	}
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
@@ -52,7 +52,7 @@ func TestPart2(t *testing.T) {
 		want  int
 	}{
 		{strings.Split(test, "\n"), 301},
-		{strings.Split(input, "\n"), 152},
+		{strings.Split(input, "\n"), 3617613952378},
 	}
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
