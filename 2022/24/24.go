@@ -3,7 +3,6 @@ package main
 import (
 	_ "embed"
 	"flag"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -68,7 +67,7 @@ type grid struct {
 func (g grid) traverse(start, end pos) (steps int) {
 	states := make(map[pos]struct{})
 	states[start] = struct{}{}
-	// draw(g.Blizzards, g.Size, states)
+	// g.draw(states, start, end)
 	for {
 		// new minute
 		steps++
@@ -102,7 +101,7 @@ func (g grid) traverse(start, end pos) (steps int) {
 			}
 		}
 		states = nextStates
-		// draw(g.Blizzards, g.Size, states)
+		// g.draw(states, start, end)
 	}
 }
 
@@ -129,57 +128,54 @@ func parse(lines []string) (g grid, start pos, end pos) {
 	return
 }
 
-func draw(blizzards []*blizzard, gridSize pos, states map[pos]struct{}) {
-	grid := [][]byte{}
+func (g grid) draw(states map[pos]struct{}, start, end pos) {
+	grid := make([]string, 0, g.Size.Y)
 	var row []byte
-	for i := 0; i < gridSize.X; i++ {
-		row = []byte{}
-		for j := 0; j < gridSize.Y; j++ {
-			var (
-				p = pos{i, j}
-				n int
-				s byte
-			)
-			for _, b := range blizzards {
-				if b.Pos == p {
-					n++
-					s = b.Symbol
-				}
-			}
-			if n > 1 {
-				row = append(row, byte(n+48))
-			} else if n == 0 {
-
-				for s := range states {
-					if p == s {
-						n++
-						row = append(row, byte('E'))
-						break
-					}
-				}
-				if n == 0 {
-					row = append(row, byte('.'))
-				}
-			} else {
+	blizzardLocations := map[pos]byte{}
+	for _, b := range g.Blizzards {
+		if s, ok := blizzardLocations[b.Pos]; !ok {
+			blizzardLocations[b.Pos] = b.Symbol
+		} else if s > 57 {
+			blizzardLocations[b.Pos] = 50
+		} else {
+			blizzardLocations[b.Pos]++
+		}
+	}
+	row = make([]byte, g.Size.X)
+	for j := -1; j < g.Size.Y+1; j++ {
+		if start.Y == j {
+			row = append(row, '.')
+		} else {
+			row = append(row, '#')
+		}
+	}
+	grid = append(grid, string(row))
+	for i := 0; i < g.Size.X; i++ {
+		row = make([]byte, g.Size.X)
+		row = append(row, '#')
+		for j := 0; j < g.Size.Y; j++ {
+			p := pos{i, j}
+			if s, ok := blizzardLocations[p]; ok {
 				row = append(row, s)
+			} else if _, ok := states[p]; ok {
+				row = append(row, byte('E'))
+			} else {
+				row = append(row, byte('.'))
 			}
 		}
-		grid = append(grid, row)
+		row = append(row, '#')
+		grid = append(grid, string(row))
 	}
-	var s string
-	for _, r := range grid {
-		s += fmt.Sprintf("%s\n", r)
-	}
-	glog.Info("\n" + s)
-}
-
-func contains(states map[pos]struct{}, end pos) bool {
-	for s := range states {
-		if s == end {
-			return true
+	row = make([]byte, g.Size.X)
+	for j := -1; j < g.Size.Y+1; j++ {
+		if end.Y == j {
+			row = append(row, '.')
+		} else {
+			row = append(row, '#')
 		}
 	}
-	return false
+	grid = append(grid, string(row))
+	glog.Info("\n" + strings.Join(grid, "\n"))
 }
 
 func part1(lines []string) (res int) {
