@@ -26,19 +26,31 @@ type pos struct {
 }
 
 func part1(lines []string) (res int) {
-	n := 0
 	prev := -1
 	for _, _depth := range lines {
 		depth := mustAtoi(_depth)
 		if depth > prev && prev != -1 {
-			n++
+			res++
 		}
 		prev = depth
 	}
-	return n
+	return
 }
 
 func part2(lines []string) (res int) {
+	sum := 0
+	sum += mustAtoi(lines[0])
+	sum += mustAtoi(lines[1])
+	sum += mustAtoi(lines[2])
+	prev := sum
+	for i := 3; i < len(lines); i++ {
+		sum -= mustAtoi(lines[i-3])
+		sum += mustAtoi(lines[i])
+		if sum > prev {
+			res++
+		}
+		prev = sum
+	}
 	return
 }
 
