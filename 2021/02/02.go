@@ -13,7 +13,6 @@ import (
 var (
 	//go:embed in.txt
 	input string
-	dirs  = map[byte]pos{'>': {0, 1}, '<': {0, -1}, '^': {-1, 0}, 'v': {1, 0}}
 )
 
 func mustAtoi(s string) int {
@@ -22,7 +21,7 @@ func mustAtoi(s string) int {
 }
 
 type pos struct {
-	X, Y int
+	X, Y, Z int
 }
 
 func part1(lines []string) (res int) {
@@ -44,7 +43,26 @@ func part1(lines []string) (res int) {
 }
 
 func part2(lines []string) (res int) {
-	return
+	p := new(pos)
+	for _, line := range lines {
+		command := strings.Split(line, " ")
+		dir := command[0]
+		n := mustAtoi(command[1])
+		switch dir {
+		case "forward":
+			// increases your horizontal position by X units.
+			p.X += n
+			// increases your depth by your aim multiplied by X.
+			p.Y += p.Z * n
+		case "up":
+			// decreases your aim by X units.
+			p.Z -= n
+		case "down":
+			// increases your aim by X units.
+			p.Z += n
+		}
+	}
+	return p.X * p.Y
 }
 
 func init() {

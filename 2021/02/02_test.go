@@ -59,7 +59,7 @@ func TestPart2(t *testing.T) {
 	}{
 		{
 			input: strings.Split(test, "\n"),
-			want:  0,
+			want:  900,
 		},
 	}
 	for _, tc := range tests {
