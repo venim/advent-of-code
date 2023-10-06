@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"flag"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -37,7 +38,7 @@ func parseFrequency(lines []string) []int {
 	}
 
 	for i := range ones {
-		ones[i] -= len(lines) / 2
+		ones[i] -= int(math.Ceil(float64(len(lines)) / 2))
 	}
 	return ones
 }
@@ -62,8 +63,53 @@ func part1(lines []string) (res int) {
 	return int(gamma * epsilon)
 }
 
+func findRating(lines []string, bitCriteria func(int) byte) int {
+	numbers := slices.Clone(lines)
+	for i := 0; i < len(numbers[0]); i++ {
+		freq := parseFrequency(numbers)
+		remaining := make([]string, 0, len(lines))
+		want := bitCriteria(freq[i])
+		for _, number := range numbers {
+			if number[i] == want {
+				remaining = append(remaining, number)
+			}
+		}
+		if len(remaining) == 1 {
+			number := remaining[0]
+			rating, err := strconv.ParseInt(number, 2, 0)
+			if err != nil {
+				return 0
+			}
+			return int(rating)
+		}
+		numbers = remaining
+	}
+	return 0
+}
+
+func findOxygenGeneratorRating(lines []string) int {
+	return findRating(lines, func(i int) byte {
+		if i >= 0 {
+			return '1'
+		}
+		return '0'
+	})
+}
+
+func findCO2ScrubberRating(lines []string) int {
+	return findRating(lines, func(i int) byte {
+		if i < 0 {
+			return '1'
+		}
+		return '0'
+	})
+}
+
 func part2(lines []string) (res int) {
-	return
+	ogr := findOxygenGeneratorRating(lines)
+	co2sr := findCO2ScrubberRating(lines)
+
+	return ogr * co2sr
 }
 
 func init() {

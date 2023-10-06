@@ -77,6 +77,27 @@ func TestPart1(t *testing.T) {
 	}
 }
 
+func TestFindRating(t *testing.T) {
+	tests := []struct {
+		name string
+		want int
+		fn   func([]string) int
+	}{
+		{"ogr", 23, findOxygenGeneratorRating},
+		{"co2sr", 10, findCO2ScrubberRating},
+	}
+	lines := strings.Split(test, "\n")
+	for _, tc := range tests {
+		t.Run("", func(t *testing.T) {
+			got := tc.fn(lines)
+			want := tc.want
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
+
 func TestPart2(t *testing.T) {
 	tests := []struct {
 		input []string
@@ -84,11 +105,11 @@ func TestPart2(t *testing.T) {
 	}{
 		{
 			input: strings.Split(test, "\n"),
-			want:  0,
+			want:  230,
 		},
 		{
 			input: strings.Split(input, "\n"),
-			want:  0,
+			want:  1613181,
 		},
 	}
 	for _, tc := range tests {
