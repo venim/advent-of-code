@@ -118,6 +118,20 @@ func part1(lines []string) (res int) {
 }
 
 func part2(lines []string) (res int) {
+	data := parseInput(lines)
+	for _, n := range data.Numbers {
+		remaining := make([]board, 0, len(data.Boards))
+		for _, b := range data.Boards {
+			if won := b.callN(n); won {
+				if len(data.Boards) > 1 {
+					continue
+				}
+				return n * b.sum()
+			}
+			remaining = append(remaining, b)
+		}
+		data.Boards = remaining
+	}
 	return
 }
 

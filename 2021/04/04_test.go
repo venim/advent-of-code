@@ -146,7 +146,11 @@ func TestPart2(t *testing.T) {
 	}{
 		{
 			input: strings.Split(test, "\n"),
-			want:  0,
+			want:  1924,
+		},
+		{
+			input: strings.Split(input, "\n"),
+			want:  21184,
 		},
 	}
 	for _, tc := range tests {
