@@ -1,4 +1,4 @@
-module advent
+module github.com/venim/advent-of-code
 
 go 1.21
 
