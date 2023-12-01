@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -17,38 +16,41 @@ var (
 	//go:embed in.txt
 	input string
 
-	digits      = []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
-	digitsRegex = regexp.MustCompile(fmt.Sprintf(`^(%s)`, strings.Join(digits, "|")))
+	digits = []string{
+		"1", "2", "3", "4", "5", "6", "7", "8", "9",
+		"one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+	}
+	part1Re = digitFinder{
+		first: regexp.MustCompile(fmt.Sprintf(`(%s)`, strings.Join(digits[:9], "|"))),
+		last:  regexp.MustCompile(fmt.Sprintf(`.*(%s)`, strings.Join(digits[:9], "|"))),
+	}
+	part2Re = digitFinder{
+		first: regexp.MustCompile(fmt.Sprintf(`(%s)`, strings.Join(digits, "|"))),
+		last:  regexp.MustCompile(fmt.Sprintf(`.*(%s)`, strings.Join(digits, "|"))),
+	}
 )
 
-func matchDigit(line string) int {
-	if matches := digitsRegex.FindStringSubmatch(line); len(matches) > 1 {
-		return slices.Index(digits, matches[1]) + 1
+type digitFinder struct {
+	first, last *regexp.Regexp
+}
+
+func findDigit(line string, re *regexp.Regexp) int {
+	matches := re.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return slices.Index(digits, matches[1])%9 + 1
 	}
 	return 0
 }
 
-func parse(line string, withDigits bool) int {
-	first := 0
-	last := 0
-	for i, s := range line {
-		v, _ := strconv.Atoi(string(s))
-		if withDigits {
-			v = matchDigit(line[i:])
-		}
-		if v != 0 {
-			if first == 0 {
-				first = v
-			}
-			last = v
-		}
-	}
+func parse(line string, df digitFinder) int {
+	first := findDigit(line, df.first)
+	last := findDigit(line, df.last)
 	return first*10 + last
 }
 
 func part1(lines []string) (res int) {
 	for _, line := range lines {
-		calibration := parse(line, false)
+		calibration := parse(line, part1Re)
 		res += calibration
 	}
 	return
@@ -56,7 +58,7 @@ func part1(lines []string) (res int) {
 
 func part2(lines []string) (res int) {
 	for _, line := range lines {
-		calibration := parse(line, true)
+		calibration := parse(line, part2Re)
 		res += calibration
 	}
 	return
