@@ -31,41 +31,34 @@ func parseCard(line string) (map[string]bool, []string) {
 func part1(lines []string) (res int) {
 	for _, line := range lines {
 		want, got := parseCard(line)
-		// glog.Infof("%v | %v", want, got)
-		score := 0
-		for _, got := range got {
-			if want[got] {
-				if score == 0 {
-					score = 1
-				} else {
-					score *= 2
-				}
+		score := .5
+		for _, n := range got {
+			if want[n] {
+				score *= 2
 			}
 		}
-		res += score
+		res += int(score)
 	}
 	return
 }
 
 func part2(lines []string) (res int) {
-	lineCopies := map[string]int{}
+	scratchcards := map[string]int{}
 	for i, line := range lines {
-		lineCopies[line]++
+		scratchcards[line]++
 		want, got := parseCard(line)
-		matched := 0
-		for _, got := range got {
-			if want[got] {
-				matched++
+		j := i + 1
+		for _, n := range got {
+			if want[n] {
+				if j >= len(lines) {
+					continue
+				}
+				scratchcards[lines[j]] += scratchcards[line]
+				j++
 			}
-		}
-		for j := i + 1; j <= i+matched; j++ {
-			if j > len(lines) {
-				break
-			}
-			lineCopies[lines[j]] += lineCopies[line]
 		}
 	}
-	for _, n := range lineCopies {
+	for _, n := range scratchcards {
 		res += n
 	}
 	return
