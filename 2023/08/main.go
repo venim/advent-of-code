@@ -15,9 +15,8 @@ var (
 )
 
 type Node struct {
-	id    string
-	left  *Node
-	right *Node
+	left  string
+	right string
 }
 
 type Nodes map[string]*Node
@@ -27,7 +26,7 @@ func (nodes Nodes) new(id string) *Node {
 	if ok {
 		return node
 	}
-	node = &Node{id: id}
+	node = &Node{}
 	nodes[id] = node
 	return node
 }
@@ -40,9 +39,9 @@ func (nodes Nodes) run(start string, end func(string) bool, instructions string)
 		steps++
 		switch instructions[i] {
 		case 'R':
-			cur = nodes[cur].right.id
+			cur = nodes[cur].right
 		case 'L':
-			cur = nodes[cur].left.id
+			cur = nodes[cur].left
 		}
 		i++
 		i %= len(instructions)
@@ -60,12 +59,8 @@ func parse(lines []string) Nodes {
 		r := parts[1][:3]
 
 		node := nodes.new(n)
-
-		left := nodes.new(l)
-		node.left = left
-
-		right := nodes.new(r)
-		node.right = right
+		node.left = l
+		node.right = r
 	}
 	return nodes
 }
