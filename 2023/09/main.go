@@ -18,16 +18,18 @@ var (
 	numRe = regexp.MustCompile(`(-?\d+)`)
 )
 
-func diff(s []int) []int {
-	o := make([]int, 0, len(s)-1)
+type sequence []int
+
+func (s sequence) diff() sequence {
+	d := make(sequence, len(s)-1)
 	for i := 1; i < len(s); i++ {
-		o = append(o, s[i]-s[i-1])
+		d[i-1] = s[i] - s[i-1]
 	}
-	return o
+	return d
 }
 
-func allZero(n []int) bool {
-	for _, n := range n {
+func (s sequence) allZero() bool {
+	for _, n := range s {
 		if n != 0 {
 			return false
 		}
@@ -35,26 +37,26 @@ func allZero(n []int) bool {
 	return true
 }
 
-func extrapolate(n []int) int {
-	if allZero(n) {
+func (s sequence) extrapolate() int {
+	if s.allZero() {
 		return 0
 	}
-	return n[len(n)-1] + extrapolate(diff(n))
+	return s[len(s)-1] + s.diff().extrapolate()
 }
 
-func parse(line string) []int {
-	l := numRe.FindAllString(line, -1)
-	s := make([]int, 0, len(l))
-	for _, n := range l {
-		s = append(s, util.MustAtoi(n))
+func parse(line string) sequence {
+	ns := numRe.FindAllString(line, -1)
+	s := make(sequence, len(ns))
+	for i, n := range ns {
+		s[i] = util.MustAtoi(n)
 	}
 	return s
 }
 
 func part1(lines []string) (res int) {
-	for _, l := range lines {
-		s := parse(l)
-		res += extrapolate(s)
+	for _, line := range lines {
+		s := parse(line)
+		res += s.extrapolate()
 	}
 	return
 }
@@ -63,7 +65,7 @@ func part2(lines []string) (res int) {
 	for _, l := range lines {
 		s := parse(l)
 		slices.Reverse(s)
-		res += extrapolate(s)
+		res += s.extrapolate()
 	}
 	return
 }
