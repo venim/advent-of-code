@@ -18,10 +18,6 @@ var (
 	numRe = regexp.MustCompile(`(-?\d+)`)
 )
 
-type history struct {
-	Sequences [][]int
-}
-
 func diff(s []int) []int {
 	o := make([]int, 0, len(s)-1)
 	for i := 1; i < len(s); i++ {
@@ -30,8 +26,8 @@ func diff(s []int) []int {
 	return o
 }
 
-func allZero(s []int) bool {
-	for _, n := range s {
+func allZero(n []int) bool {
+	for _, n := range n {
 		if n != 0 {
 			return false
 		}
@@ -39,57 +35,35 @@ func allZero(s []int) bool {
 	return true
 }
 
-func generate(line string, reverse bool) history {
-	h := history{}
+func extrapolate(n []int) int {
+	if allZero(n) {
+		return 0
+	}
+	return n[len(n)-1] + extrapolate(diff(n))
+}
+
+func parse(line string) []int {
 	l := numRe.FindAllString(line, -1)
 	s := make([]int, 0, len(l))
 	for _, n := range l {
 		s = append(s, util.MustAtoi(n))
 	}
-	if reverse {
-		slices.Reverse(s)
-	}
-	h.Sequences = append(h.Sequences, s)
-	for {
-		s = diff(s)
-		if len(s) == 0 {
-			break
-		}
-		h.Sequences = append(h.Sequences, s)
-
-		if allZero(s) {
-			break
-		}
-	}
-	return h
-}
-
-func (h history) extrapolate() {
-	h.Sequences[len(h.Sequences)-1] = append(h.Sequences[len(h.Sequences)-1], 0)
-
-	for i := len(h.Sequences) - 2; i >= 0; i-- {
-		p := h.Sequences[i+1]
-		s := h.Sequences[i]
-		h.Sequences[i] = append(s, s[len(s)-1]+p[len(p)-1])
-	}
+	return s
 }
 
 func part1(lines []string) (res int) {
 	for _, l := range lines {
-		h := generate(l, false)
-		h.extrapolate()
-		s := h.Sequences[0]
-		res += s[len(s)-1]
+		s := parse(l)
+		res += extrapolate(s)
 	}
 	return
 }
 
 func part2(lines []string) (res int) {
 	for _, l := range lines {
-		h := generate(l, true)
-		h.extrapolate()
-		s := h.Sequences[0]
-		res += s[len(s)-1]
+		s := parse(l)
+		slices.Reverse(s)
+		res += extrapolate(s)
 	}
 	return
 }
