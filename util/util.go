@@ -19,3 +19,15 @@ func MustAtoi(s string) int {
 type Pos struct {
 	X, Y int
 }
+
+func (p Pos) Add(p2 Pos) Pos {
+	return Pos{X: p.X + p2.X, Y: p.Y + p2.Y}
+}
+
+func (p Pos) Sub(p2 Pos) Pos {
+	return Pos{X: p.X - p2.X, Y: p.Y - p2.Y}
+}
+
+func (p Pos) InBounds(x, y int) bool {
+	return p.Y < 0 || p.Y >= y || p.X < 0 || p.X >= x
+}
