@@ -31,9 +31,18 @@ type node struct {
 }
 
 type grid struct {
+	x, y  int
 	lines []string
 	start util.Pos
 	parts map[util.Pos]int
+}
+
+func newGrid(lines []string) *grid {
+	g := new(grid)
+	g.lines = lines
+	g.y = len(lines)
+	g.x = len(lines[0])
+	return g
 }
 
 func (g *grid) findStart() {
@@ -50,12 +59,12 @@ func (g *grid) findStart() {
 func (g *grid) seed() []node {
 	queue := []node{}
 	for _, d := range util.Directions {
-		pos := util.Pos{X: g.start.X + d.X, Y: g.start.Y + d.Y}
-		if pos.Y < 0 || pos.Y >= len(g.lines) || pos.X < 0 || pos.X >= len(g.lines[0]) {
+		pos := g.start.Add(d)
+		if pos.InBounds(g.x, g.y) {
 			continue
 		}
 		for _, p := range pipes[g.lines[pos.Y][pos.X]] {
-			next := util.Pos{X: pos.X + p.X, Y: pos.Y + p.Y}
+			next := pos.Add(p)
 			if next == g.start {
 				queue = append(queue, node{1, pos})
 			}
@@ -67,12 +76,12 @@ func (g *grid) seed() []node {
 }
 
 func (g *grid) replaceS(seed []node) {
-loop:
+pipe:
 	for k, v := range pipes {
 		for _, p := range seed {
-			pos := util.Pos{X: p.pos.X - g.start.X, Y: p.pos.Y - g.start.Y}
+			pos := p.pos.Sub(g.start)
 			if !slices.Contains(v, pos) {
-				continue loop
+				continue pipe
 			}
 		}
 		line := []byte(g.lines[g.start.Y])
@@ -94,8 +103,8 @@ func (g *grid) traverse() {
 
 		visited[pos] = cur.distance
 		for _, d := range pipes[g.lines[pos.Y][pos.X]] {
-			pos := util.Pos{X: pos.X + d.X, Y: pos.Y + d.Y}
-			if pos.Y < 0 || pos.Y >= len(g.lines) || pos.X < 0 || pos.X >= len(g.lines[0]) {
+			pos := pos.Add(d)
+			if pos.InBounds(g.x, g.y) {
 				continue
 			}
 			if visited[pos] == 0 {
@@ -107,7 +116,7 @@ func (g *grid) traverse() {
 }
 
 func part1(lines []string) (res int) {
-	g := &grid{lines: lines}
+	g := newGrid(lines)
 	g.findStart()
 	g.traverse()
 
@@ -139,7 +148,7 @@ func (g *grid) countIn() (res int) {
 }
 
 func part2(lines []string) (res int) {
-	g := &grid{lines: lines}
+	g := newGrid(lines)
 	g.findStart()
 	g.traverse()
 
