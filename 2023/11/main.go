@@ -16,112 +16,85 @@ var (
 	input string
 )
 
-func part1(lines []string) (res int) {
+type set map[int]struct{}
+
+type image struct {
+	galaxies  []util.Pos
+	emptyRows set
+	emptyCols set
+	emptyMult int
+}
+
+func findEmpty(n int, seen set) set {
+	empty := set{}
+	for i := 0; i < n; i++ {
+		if _, ok := seen[i]; !ok {
+			empty[i] = struct{}{}
+		}
+	}
+	return empty
+}
+
+func parse(lines []string) image {
 	galaxies := []util.Pos{}
 
-	emptyRows := map[int]struct{}{}
-	emptyCols := map[int]struct{}{}
-	seenRows := map[int]struct{}{}
-	seenCols := map[int]struct{}{}
 	for r := 0; r < len(lines); r++ {
 		for c := 0; c < len(lines[0]); c++ {
 			if lines[r][c] != '.' {
-				seenRows[r] = struct{}{}
-				seenCols[c] = struct{}{}
 				galaxies = append(galaxies, util.Pos{X: c, Y: r})
 			}
 		}
 	}
-	for r := 0; r < len(lines); r++ {
-		if _, ok := seenRows[r]; !ok {
-			emptyRows[r] = struct{}{}
+
+	seenRows := set{}
+	seenCols := set{}
+
+	for _, galaxy := range galaxies {
+		seenRows[galaxy.Y] = struct{}{}
+		seenCols[galaxy.X] = struct{}{}
+	}
+
+	return image{
+		galaxies:  galaxies,
+		emptyRows: findEmpty(len(lines), seenRows),
+		emptyCols: findEmpty(len(lines[0]), seenCols),
+	}
+}
+
+func dist(vs []int, empties set, n int) int {
+	slices.Sort(vs)
+	v := vs[1] - vs[0]
+	for i := range empties {
+		if i > vs[0] && i < vs[1] {
+			v += (n - 1)
 		}
 	}
-	for c := 0; c < len(lines[0]); c++ {
-		if _, ok := seenCols[c]; !ok {
-			emptyCols[c] = struct{}{}
+	return v
+}
+
+func (img image) sumAllDistances() (res int) {
+	for i := 0; i < len(img.galaxies); i++ {
+		for j := i + 1; j < len(img.galaxies); j++ {
+			g1 := img.galaxies[i]
+			g2 := img.galaxies[j]
+
+			res += dist([]int{g1.X, g2.X}, img.emptyCols, img.emptyMult)
+			res += dist([]int{g1.Y, g2.Y}, img.emptyRows, img.emptyMult)
 		}
 	}
-	n := 0
-	for i := 0; i < len(galaxies); i++ {
-		for j := i + 1; j < len(galaxies); j++ {
-			g1 := galaxies[i]
-			g2 := galaxies[j]
-			xs := []int{g1.X, g2.X}
-			slices.Sort(xs)
-			x := xs[1] - xs[0]
-			for c := range emptyCols {
-				if c > xs[0] && c < xs[1] {
-					x++
-				}
-			}
-			ys := []int{g1.Y, g2.Y}
-			slices.Sort(ys)
-			y := ys[1] - ys[0]
-			for r := range emptyRows {
-				if r > ys[0] && r < ys[1] {
-					y++
-				}
-			}
-			res += (x + y)
-			n++
-		}
-	}
-	glog.Info(n)
 	return
 }
 
+func part1(lines []string) (res int) {
+	img := parse(lines)
+	img.emptyMult = 2
+	return img.sumAllDistances()
+}
+
 func part2(lines []string) (res int) {
-	galaxies := []util.Pos{}
-
-	emptyRows := map[int]struct{}{}
-	emptyCols := map[int]struct{}{}
-	seenRows := map[int]struct{}{}
-	seenCols := map[int]struct{}{}
-	for r := 0; r < len(lines); r++ {
-		for c := 0; c < len(lines[0]); c++ {
-			if lines[r][c] != '.' {
-				seenRows[r] = struct{}{}
-				seenCols[c] = struct{}{}
-				galaxies = append(galaxies, util.Pos{X: c, Y: r})
-			}
-		}
-	}
-	for r := 0; r < len(lines); r++ {
-		if _, ok := seenRows[r]; !ok {
-			emptyRows[r] = struct{}{}
-		}
-	}
-	for c := 0; c < len(lines[0]); c++ {
-		if _, ok := seenCols[c]; !ok {
-			emptyCols[c] = struct{}{}
-		}
-	}
-
-	for i := 0; i < len(galaxies); i++ {
-		for j := i + 1; j < len(galaxies); j++ {
-			g1 := galaxies[i]
-			g2 := galaxies[j]
-			xs := []int{g1.X, g2.X}
-			slices.Sort(xs)
-			x := xs[1] - xs[0]
-			for c := range emptyCols {
-				if c > xs[0] && c < xs[1] {
-					x += 999999
-				}
-			}
-			ys := []int{g1.Y, g2.Y}
-			slices.Sort(ys)
-			y := ys[1] - ys[0]
-			for r := range emptyRows {
-				if r > ys[0] && r < ys[1] {
-					y += 999999
-				}
-			}
-			res += (x + y)
-		}
-	}
-	return
+	img := parse(lines)
+	img.emptyMult = 1000000
+	return img.sumAllDistances()
 }
 
 func init() {
