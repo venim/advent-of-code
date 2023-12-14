@@ -15,19 +15,15 @@ var (
 	input string
 )
 
-func north(lines []string) {
-	for c := 0; c < len(lines[0]); c++ {
+func north(dish [][]rune) {
+	for c := 0; c < len(dish[0]); c++ {
 	row:
-		for r := 0; r < len(lines); r++ {
-			if lines[r][c] == 'O' {
+		for r := 0; r < len(dish); r++ {
+			if dish[r][c] == 'O' {
 				for r2 := r - 1; r2 >= -1; r2-- {
-					if r2 == -1 || lines[r2][c] == 'O' || lines[r2][c] == '#' {
-						l := []rune(lines[r])
-						l[c] = '.'
-						lines[r] = string(l)
-						l2 := []rune(lines[r2+1])
-						l2[c] = 'O'
-						lines[r2+1] = string(l2)
+					if r2 == -1 || dish[r2][c] == 'O' || dish[r2][c] == '#' {
+						dish[r][c] = '.'
+						dish[r2+1][c] = 'O'
 						continue row
 					}
 				}
@@ -36,17 +32,15 @@ func north(lines []string) {
 	}
 }
 
-func west(lines []string) {
-	for r := 0; r < len(lines); r++ {
+func west(dish [][]rune) {
+	for r := 0; r < len(dish); r++ {
 	col:
-		for c := 0; c < len(lines[0]); c++ {
-			if lines[r][c] == 'O' {
+		for c := 0; c < len(dish[0]); c++ {
+			if dish[r][c] == 'O' {
 				for c2 := c - 1; c2 >= -1; c2-- {
-					if c2 == -1 || lines[r][c2] == 'O' || lines[r][c2] == '#' {
-						l := []rune(lines[r])
-						l[c] = '.'
-						l[c2+1] = 'O'
-						lines[r] = string(l)
+					if c2 == -1 || dish[r][c2] == 'O' || dish[r][c2] == '#' {
+						dish[r][c] = '.'
+						dish[r][c2+1] = 'O'
 						continue col
 					}
 				}
@@ -55,19 +49,15 @@ func west(lines []string) {
 	}
 }
 
-func south(lines []string) {
-	for c := 0; c < len(lines[0]); c++ {
+func south(dish [][]rune) {
+	for c := 0; c < len(dish[0]); c++ {
 	row:
-		for r := len(lines) - 1; r >= 0; r-- {
-			if lines[r][c] == 'O' {
-				for r2 := r + 1; r2 <= len(lines); r2++ {
-					if r2 == len(lines) || lines[r2][c] == 'O' || lines[r2][c] == '#' {
-						l := []rune(lines[r])
-						l[c] = '.'
-						lines[r] = string(l)
-						l2 := []rune(lines[r2-1])
-						l2[c] = 'O'
-						lines[r2-1] = string(l2)
+		for r := len(dish) - 1; r >= 0; r-- {
+			if dish[r][c] == 'O' {
+				for r2 := r + 1; r2 <= len(dish); r2++ {
+					if r2 == len(dish) || dish[r2][c] == 'O' || dish[r2][c] == '#' {
+						dish[r][c] = '.'
+						dish[r2-1][c] = 'O'
 						continue row
 					}
 				}
@@ -76,17 +66,15 @@ func south(lines []string) {
 	}
 }
 
-func east(lines []string) {
-	for r := 0; r < len(lines); r++ {
+func east(dish [][]rune) {
+	for r := 0; r < len(dish); r++ {
 	col:
-		for c := len(lines[0]) - 1; c >= 0; c-- {
-			if lines[r][c] == 'O' {
-				for c2 := c + 1; c2 <= len(lines[0]); c2++ {
-					if c2 == len(lines) || lines[r][c2] == 'O' || lines[r][c2] == '#' {
-						l := []rune(lines[r])
-						l[c] = '.'
-						l[c2-1] = 'O'
-						lines[r] = string(l)
+		for c := len(dish[0]) - 1; c >= 0; c-- {
+			if dish[r][c] == 'O' {
+				for c2 := c + 1; c2 <= len(dish[0]); c2++ {
+					if c2 == len(dish) || dish[r][c2] == 'O' || dish[r][c2] == '#' {
+						dish[r][c] = '.'
+						dish[r][c2-1] = 'O'
 						continue col
 					}
 				}
@@ -95,11 +83,11 @@ func east(lines []string) {
 	}
 }
 
-func score(lines []string) (res int) {
-	for c := 0; c < len(lines[0]); c++ {
-		for r := 0; r < len(lines); r++ {
-			if lines[r][c] == 'O' {
-				res += (len(lines) - r)
+func score(dish [][]rune) (res int) {
+	for c := 0; c < len(dish[0]); c++ {
+		for r := 0; r < len(dish); r++ {
+			if dish[r][c] == 'O' {
+				res += (len(dish) - r)
 			}
 		}
 	}
@@ -107,26 +95,51 @@ func score(lines []string) (res int) {
 }
 
 func part1(lines []string) (res int) {
-	north(lines)
-	return score(lines)
+	dish := make([][]rune, len(lines))
+	for i, l := range lines {
+		dish[i] = []rune(l)
+	}
+	north(dish)
+	return score(dish)
+}
+
+func toString(dish [][]rune) string {
+	s := ""
+	for _, r := range dish {
+		s += string(r) + "\n"
+	}
+	return s[:len(s)-1]
+}
+
+func fromString(s string) [][]rune {
+	lines := strings.Split(s, "\n")
+	dish := make([][]rune, len(lines))
+	for i, l := range lines {
+		dish[i] = []rune(l)
+	}
+	return dish
 }
 
 func part2(lines []string) (res int) {
+	dish := make([][]rune, len(lines))
+	for i, l := range lines {
+		dish[i] = []rune(l)
+	}
 	cache := []string{}
 
 	for cycle := 0; cycle < 1000000000; cycle++ {
-		north(lines)
-		west(lines)
-		south(lines)
-		east(lines)
-		if prev := slices.Index(cache, strings.Join(lines, "\n")); prev != -1 {
+		north(dish)
+		west(dish)
+		south(dish)
+		east(dish)
+		if prev := slices.Index(cache, toString(dish)); prev != -1 {
 			n := (1000000000 - (prev + 1)) % (cycle - prev)
-			lines = strings.Split(cache[prev+n], "\n")
+			dish = fromString(cache[prev+n])
 			break
 		}
-		cache = append(cache, strings.Join(lines, "\n"))
+		cache = append(cache, toString(dish))
 	}
-	return score(lines)
+	return score(dish)
 }
 
 func init() {
