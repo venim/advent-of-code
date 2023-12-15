@@ -27,6 +27,41 @@ func TestGeneric(t *testing.T) {
 	}
 }
 
+func TestRotate(t *testing.T) {
+	tests := []struct {
+		in   dish
+		want dish
+	}{
+		{
+			dish{{0, 1, 2}},
+			dish{{0}, {1}, {2}},
+		},
+		{
+			// 1 2 -> 3 1
+			// 3 4    4 2
+			dish{{1, 2}, {3, 4}},
+			dish{{3, 1}, {4, 2}},
+		},
+		{
+			// 1 2 3 -> 4 1
+			// 4 5 6    5 2
+			//          6 3
+			dish{{1, 2, 3}, {4, 5, 6}},
+			dish{{4, 1}, {5, 2}, {6, 3}},
+		},
+	}
+	for _, tc := range tests {
+		t.Run("", func(t *testing.T) {
+			got := tc.in
+			got.rotate()
+			want := tc.want
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
+
 func TestPart1(t *testing.T) {
 	tests := []struct {
 		input []string

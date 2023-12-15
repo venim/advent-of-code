@@ -17,7 +17,7 @@ var (
 
 type dish [][]rune
 
-func (d dish) rollNorth() {
+func (d dish) tilt() {
 	for c := 0; c < len(d[0]); c++ {
 	row:
 		for r := 0; r < len(d); r++ {
@@ -27,57 +27,6 @@ func (d dish) rollNorth() {
 						d[r][c] = '.'
 						d[rr+1][c] = 'O'
 						continue row
-					}
-				}
-			}
-		}
-	}
-}
-
-func (d dish) rollWest() {
-	for r := 0; r < len(d); r++ {
-	col:
-		for c := 0; c < len(d[0]); c++ {
-			if d[r][c] == 'O' {
-				for cc := c - 1; cc >= -1; cc-- {
-					if cc == -1 || d[r][cc] == 'O' || d[r][cc] == '#' {
-						d[r][c] = '.'
-						d[r][cc+1] = 'O'
-						continue col
-					}
-				}
-			}
-		}
-	}
-}
-
-func (d dish) rollSouth() {
-	for c := 0; c < len(d[0]); c++ {
-	row:
-		for r := len(d) - 1; r >= 0; r-- {
-			if d[r][c] == 'O' {
-				for rr := r + 1; rr <= len(d); rr++ {
-					if rr == len(d) || d[rr][c] == 'O' || d[rr][c] == '#' {
-						d[r][c] = '.'
-						d[rr-1][c] = 'O'
-						continue row
-					}
-				}
-			}
-		}
-	}
-}
-
-func (d dish) rollEast() {
-	for r := 0; r < len(d); r++ {
-	col:
-		for c := len(d[0]) - 1; c >= 0; c-- {
-			if d[r][c] == 'O' {
-				for cc := c + 1; cc <= len(d[0]); cc++ {
-					if cc == len(d) || d[r][cc] == 'O' || d[r][cc] == '#' {
-						d[r][c] = '.'
-						d[r][cc-1] = 'O'
-						continue col
 					}
 				}
 			}
@@ -98,8 +47,21 @@ func (d dish) calcLoad() (res int) {
 
 func part1(lines []string) (res int) {
 	dish := dishFromString(strings.Join(lines, "\n"))
-	dish.rollNorth()
+	dish.tilt()
 	return dish.calcLoad()
+}
+
+func (d *dish) rotate() {
+	n := len(*d)
+	m := len((*d)[0])
+	dd := make(dish, m)
+	for j := 0; j < m; j++ {
+		dd[j] = make([]rune, n)
+		for i := 0; i < n; i++ {
+			dd[j][n-1-i] = (*d)[i][j]
+		}
+	}
+	*d = dd
 }
 
 func (d dish) String() string {
@@ -119,22 +81,26 @@ func dishFromString(s string) dish {
 	return d
 }
 
+func (d *dish) cycle(n int) {
+	cache := []string{}
+	for cycle := 0; cycle < n; cycle++ {
+		for i := 0; i < 4; i++ {
+			d.tilt()
+			d.rotate()
+		}
+		s := d.String()
+		if prev := slices.Index(cache, s); prev != -1 {
+			n := (999999999 - prev) % (cycle - prev)
+			*d = dishFromString(cache[prev+n])
+			return
+		}
+		cache = append(cache, s)
+	}
+}
+
 func part2(lines []string) (res int) {
 	dish := dishFromString(strings.Join(lines, "\n"))
-	cache := []string{}
-
-	for cycle := 0; cycle < 1000000000; cycle++ {
-		dish.rollNorth()
-		dish.rollWest()
-		dish.rollSouth()
-		dish.rollEast()
-		if prev := slices.Index(cache, dish.String()); prev != -1 {
-			n := (999999999 - prev) % (cycle - prev)
-			dish = dishFromString(cache[prev+n])
-			break
-		}
-		cache = append(cache, dish.String())
-	}
+	dish.cycle(1000000000)
 	return dish.calcLoad()
 }
 
