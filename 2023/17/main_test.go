@@ -59,7 +59,15 @@ func TestPart2(t *testing.T) {
 	}{
 		{
 			input: strings.Split(test, "\n"),
-			want:  71,
+			want:  94,
+		},
+		{
+			input: strings.Split(`111111111111
+999999999991
+999999999991
+999999999991
+999999999991`, "\n"),
+			want: 71,
 		},
 		{
 			input: strings.Split(input, "\n"),
