@@ -39,43 +39,25 @@ type node struct {
 	val int
 }
 
-func (n1 node) Less(n2 node) bool {
+func (n1 *node) Less(n2 *node) bool {
 	return n1.val < n2.val
 }
 
-type minHeap []node
-
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i].Less(h[j]) }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *minHeap) Push(x any) {
-	*h = append(*h, x.(node))
-}
-
-func (h *minHeap) Pop() any {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	old[n-1] = node{}
-	*h = old[0 : n-1]
-	return x
-}
-
 func solve(G grid, min int, max int, end complex128) int {
-	q := make(minHeap, 0)
+	q := make(util.MinHeap[*node], 0)
 	heap.Init(&q)
-	heap.Push(&q, node{0, 1, 0})
-	heap.Push(&q, node{0, 1i, 0})
+	heap.Push(&q, &node{0, 1, 0})
+	heap.Push(&q, &node{0, 1i, 0})
 
 	cache := map[node]bool{}
 
 	for len(q) > 0 {
-		cur := heap.Pop(&q).(node)
+		cur := heap.Pop(&q).(*node)
 		if cur.pos == end {
 			return cur.val
 		}
-		cached := node{pos: cur.pos, dir: cur.dir}
+		cached := *cur
+		cached.val = 0
 		if cache[cached] {
 			continue
 		}
@@ -89,7 +71,7 @@ func solve(G grid, min int, max int, end complex128) int {
 					for j := 1; j <= i; j++ {
 						val += G.points[cur.pos+d*complex(float64(j), 0)]
 					}
-					n := node{newPos, d, val}
+					n := &node{newPos, d, val}
 					heap.Push(&q, n)
 				}
 			}
