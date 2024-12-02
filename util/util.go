@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -30,4 +31,8 @@ func (p Pos) Sub(p2 Pos) Pos {
 
 func (p Pos) InBounds(x, y int) bool {
 	return p.Y < 0 || p.Y >= y || p.X < 0 || p.X >= x
+}
+
+func SplitLines(s string) []string {
+	return strings.Split(strings.ReplaceAll(s, "\r", ""), "\n")
 }

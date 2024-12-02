@@ -86,7 +86,7 @@ func main() {
 		res int
 	)
 	flag.Parse()
-	lines := strings.Split(input, "\r\n")
+	lines := strings.Split(strings.ReplaceAll(input, "\r", ""), "\n")
 
 	t = time.Now()
 	res = part1(lines)

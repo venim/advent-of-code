@@ -2,10 +2,10 @@ package main
 
 import (
 	_ "embed"
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/venim/advent-of-code/util"
 )
 
 var (
@@ -33,12 +33,12 @@ func TestPart1(t *testing.T) {
 		want  int
 	}{
 		{
-			input: strings.Split(test, "\n"),
+			input: util.SplitLines(test),
 			want:  2,
 		},
 		{
-			input: strings.Split(input, "\n"),
-			want:  -1,
+			input: util.SplitLines(input),
+			want:  585,
 		},
 	}
 	for _, tc := range tests {
@@ -77,11 +77,11 @@ func TestPart2(t *testing.T) {
 		want  int
 	}{
 		{
-			input: strings.Split(test, "\r\n"),
+			input: util.SplitLines(test),
 			want:  4,
 		},
 		{
-			input: strings.Split(input, "\r\n"),
+			input: util.SplitLines(input),
 			want:  626,
 		},
 	}
