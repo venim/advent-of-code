@@ -29,7 +29,7 @@ func (p Pos) Sub(p2 Pos) Pos {
 	return Pos{X: p.X - p2.X, Y: p.Y - p2.Y}
 }
 
-func (p Pos) InBounds(x, y int) bool {
+func (p Pos) IsOutOfBounds(x, y int) bool {
 	return p.Y < 0 || p.Y >= y || p.X < 0 || p.X >= x
 }
 

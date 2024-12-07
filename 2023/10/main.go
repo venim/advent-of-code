@@ -60,7 +60,7 @@ func (g *grid) seed() []node {
 	queue := []node{}
 	for _, d := range util.Directions {
 		pos := g.start.Add(d)
-		if pos.InBounds(g.x, g.y) {
+		if pos.IsOutOfBounds(g.x, g.y) {
 			continue
 		}
 		for _, p := range pipes[g.lines[pos.Y][pos.X]] {
@@ -104,7 +104,7 @@ func (g *grid) traverse() {
 		visited[pos] = cur.distance
 		for _, d := range pipes[g.lines[pos.Y][pos.X]] {
 			pos := pos.Add(d)
-			if pos.InBounds(g.x, g.y) {
+			if pos.IsOutOfBounds(g.x, g.y) {
 				continue
 			}
 			if visited[pos] == 0 {
