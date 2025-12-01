@@ -25,15 +25,12 @@ func part1(lines []string) (res int) {
 		switch l[0] {
 		case 'L':
 			pos -= n
-			for pos < 0 {
-				pos += 100
-			}
 		case 'R':
 			pos += n
-			for pos > 99 {
-				pos -= 100
-			}
 		}
+		// Ensure pos stays within [0, 99] using modulo arithmetic.
+		// The `+ 100` ensures a positive result before the final modulo.
+		pos = (pos%100 + 100) % 100
 		if pos == 0 {
 			res++
 		}
@@ -42,34 +39,31 @@ func part1(lines []string) (res int) {
 }
 
 func part2(lines []string) (res int) {
-	pos := 50
+	// Initialize pos with a large offset to prevent negative values
+	// and simplify boundary crossing calculations with integer division.
+	pos := 50 + 1_000_000_000
 	for _, l := range lines {
 		if l == "" {
 			break
 		}
 		n := util.MustAtoi(l[1:])
-		res += n / 100
-		n %= 100
 		switch l[0] {
 		case 'L':
-			pos -= n
-			for pos < 0 {
-				if pos != -n {
-					res++
-				}
-				pos += 100
-			}
+			next := pos - n
+			// Count how many multiples of 100 are crossed when moving left.
+			// (pos-1)/100 gives the number of full 100-segments before current pos.
+			// (next-1)/100 gives the number of full 100-segments before next pos.
+			// The difference is the number of boundaries crossed.
+			res += (pos-1)/100 - (next-1)/100
+			pos = next
 		case 'R':
-			pos += n
-			for pos > 99 {
-				if pos != 100 {
-					res++
-				}
-				pos -= 100
-			}
-		}
-		if pos == 0 {
-			res++
+			next := pos + n
+			// Count how many multiples of 100 are crossed when moving right.
+			// next/100 gives the number of full 100-segments up to next pos.
+			// pos/100 gives the number of full 100-segments up to current pos.
+			// The difference is the number of boundaries crossed.
+			res += next/100 - pos/100
+			pos = next
 		}
 	}
 	return
