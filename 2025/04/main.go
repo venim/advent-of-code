@@ -37,37 +37,57 @@ func neighbors(lines [][]rune, pos util.Pos, x, y int) (res int) {
 	return
 }
 
-func findAccessible(lines [][]rune) (accessible []util.Pos) {
+func initGraph(lines [][]rune) ([]util.Pos, map[util.Pos]int) {
 	x := len(lines[0])
 	y := len(lines)
+	counts := map[util.Pos]int{}
+	q := []util.Pos{}
+
 	for j := range y {
 		for i := range x {
-			pos := util.Pos{i, j}
-			if lines[j][i] == '@' &&
-				neighbors(lines, pos, x, y) < 4 {
-				accessible = append(accessible, pos)
+			if lines[j][i] == '@' {
+				pos := util.Pos{i, j}
+				c := neighbors(lines, pos, x, y)
+				counts[pos] = c
+				if c < 4 {
+					q = append(q, pos)
+				}
 			}
 		}
 	}
-	return
+	return q, counts
 }
 
 func part1(lines [][]rune) (res int) {
-	return len(findAccessible(lines))
+	q, _ := initGraph(lines)
+	return len(q)
 }
 
 func part2(lines [][]rune) (res int) {
-	for {
-		accessible := findAccessible(lines)
-		if len(accessible) == 0 {
-			return
-		}
-		res += len(accessible)
-		// remove all accessible rolls
-		for _, p := range accessible {
-			lines[p.Y][p.X] = '.'
+	x := len(lines[0])
+	y := len(lines)
+	q, counts := initGraph(lines)
+
+	for head := 0; head < len(q); head++ {
+		curr := q[head]
+		lines[curr.Y][curr.X] = '.'
+
+		for j := curr.Y - 1; j <= curr.Y+1; j++ {
+			for i := curr.X - 1; i <= curr.X+1; i++ {
+				if i == curr.X && j == curr.Y {
+					continue
+				}
+				p := util.Pos{i, j}
+				if !p.IsOutOfBounds(x, y) && lines[j][i] == '@' {
+					counts[p]--
+					if counts[p] == 3 {
+						q = append(q, p)
+					}
+				}
+			}
 		}
 	}
+	return len(q)
 }
 
 func init() {
