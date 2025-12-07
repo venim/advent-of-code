@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"flag"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
 
@@ -17,117 +16,132 @@ var (
 	input string
 )
 
-var numRe = regexp.MustCompile(`\d+`)
-
+// parseNumbers extracts all integer numbers from a line using strings.Fields.
 func parseNumbers(line string) (nums []int) {
-	matches := numRe.FindAllString(line, -1)
-	for _, n := range matches {
-		nums = append(nums, util.MustAtoi(n))
+	for f := range strings.FieldsSeq(line) {
+		nums = append(nums, util.MustAtoi(f))
 	}
 	return
 }
 
-var operRe = regexp.MustCompile(`[\+\*]`)
+// operRe is a regular expression to find operators (+ or *) and optional trailing spaces.
+var operRe = regexp.MustCompile(`([\+\*])\s*`)
 
+// parseOperands extracts all operator symbols from a line.
 func parseOperands(line string) (opers []string) {
-	return operRe.FindAllString(line, -1)
+	matches := operRe.FindAllStringSubmatch(line, -1)
+	for _, m := range matches {
+		opers = append(opers, m[1])
+	}
+	return
+}
+
+// calculate performs the arithmetic reduction (sum or product) on a slice of numbers.
+func calculate(nums []int, op string) int {
+	if len(nums) == 0 {
+		return 0
+	}
+	// Initialize the result with the first number.
+	n := nums[0]
+	// Apply the operation iteratively to the rest of the numbers.
+	for _, val := range nums[1:] {
+		switch op {
+		case "*":
+			n *= val
+		case "+":
+			n += val
+		}
+	}
+	return n
 }
 
 func part1(lines []string) (res int) {
-	var numbers [][]int
-	var operands []string
-	for i, line := range lines {
-		if i == len(lines)-1 {
-			operands = parseOperands(line)
+	if len(lines) == 0 {
+		return 0
+	}
+
+	// Separate data lines (numbers) from the operand line.
+	dataLines := lines[:len(lines)-1]
+	opLine := lines[len(lines)-1]
+
+	// Parse operands from the last line.
+	operands := parseOperands(opLine)
+
+	// Parse all numbers into a 2D grid.
+	var grid [][]int
+	for _, line := range dataLines {
+		grid = append(grid, parseNumbers(line))
+	}
+
+	// Iterate through each column (corresponding to an operand) and calculate its result.
+	for i, op := range operands {
+		// Ensure valid column index.
+		if len(grid) == 0 || i >= len(grid[0]) {
 			continue
 		}
-		numbers = append(numbers, parseNumbers(line))
-	}
-
-	for i := range len(operands) {
-		var n int
-		for j := range len(numbers) {
-			if j == 0 {
-				n = numbers[j][i]
-				continue
-			}
-			switch operands[i] {
-			case "*":
-				n *= numbers[j][i]
-			case "+":
-				n += numbers[j][i]
+		// Collect numbers vertically for the current column.
+		var nums []int
+		for _, row := range grid {
+			if i < len(row) {
+				nums = append(nums, row[i])
 			}
 		}
-		res += n
+		// Add the calculated column result to the total.
+		res += calculate(nums, op)
 	}
 	return
 }
-
-func parseColumns(in []string) (out []int) {
-	var N int
-	for _, s := range in {
-		if len(s) > N {
-			N = len(s)
-		}
-	}
-	for i := range N {
-		var n []byte
-		for _, s := range in {
-			if i < len(s) && s[i] != ' ' {
-				n = append(n, s[i])
-			}
-		}
-		out = append(out, util.MustAtoi(string(n)))
-	}
-	slices.Reverse(out)
-	return
-}
-
-var part2Re = regexp.MustCompile(`[\+\*]\s+`)
 
 func part2(lines []string) (res int) {
-	var numbers [][]string
-	var operands []string
-
-	for range len(lines) - 1 {
-		numbers = append(numbers, []string{})
+	if len(lines) == 0 {
+		return 0
 	}
 
-	for lines[0] != "" {
-		// parse each column one by one
-		line := lines[len(lines)-1]
-		loc := part2Re.FindStringIndex(line)
-		operands = append(operands, line[:1])
+	// Separate data lines (numbers) from the operand line.
+	dataLines := lines[:len(lines)-1]
+	opLine := lines[len(lines)-1]
 
-		for i, line := range lines {
-			lines[i] = line[loc[1]:]
-			if i == len(lines)-1 {
-				continue
-			}
-			n := line[:loc[1]]
-			if loc[1] != len(line) {
-				n = n[:len(n)-1]
-			}
-			numbers[i] = append(numbers[i], n)
-		}
-	}
+	// Find all operator column boundaries in the last line.
+	matches := operRe.FindAllStringIndex(opLine, -1)
 
-	for i := range len(numbers[0]) {
-		var ns []string
-		for _, n := range numbers {
-			ns = append(ns, n[i])
+	// Process each identified column.
+	for _, loc := range matches {
+		start, end := loc[0], loc[1]
+		// Extract the operator.
+		op := opLine[start : start+1]
+
+		// Determine the effective width of the number chunk for this column.
+		chunkWidth := end - start
+		// Adjust chunk width if it's not the last column (to account for trailing space).
+		if end != len(opLine) {
+			chunkWidth--
 		}
-		out := parseColumns(ns)
-		n := out[0]
-		for _, nn := range out[1:] {
-			switch operands[i] {
-			case "*":
-				n *= nn
-			case "+":
-				n += nn
+
+		// Extract numbers vertically for the current column chunk.
+		var nums []int
+		for c := 0; c < chunkWidth; c++ {
+			var val int
+			var hasDigit bool
+			colIdx := start + c
+			// Iterate through data lines to build the number from characters in the current vertical slice.
+			for _, line := range dataLines {
+				if colIdx < len(line) {
+					b := line[colIdx]
+					// Accumulate digits to form the integer value.
+					if b >= '0' && b <= '9' {
+						val = val*10 + int(b-'0')
+						hasDigit = true
+					}
+				}
+			}
+			// Only append if at least one digit was found in the column slice.
+			if hasDigit {
+				nums = append(nums, val)
 			}
 		}
-		res += n
+
+		// Add the calculated column result to the total.
+		res += calculate(nums, op)
 	}
 
 	return

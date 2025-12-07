@@ -89,24 +89,6 @@ func TestPart1(t *testing.T) {
 	}
 }
 
-func TestParseColumns(t *testing.T) {
-	tests := []struct {
-		in   []string
-		want []int
-	}{
-		{[]string{"64 ", "23 ", "314"}, []int{4, 431, 623}},
-	}
-	for _, tc := range tests {
-		t.Run("", func(t *testing.T) {
-			got := parseColumns(tc.in)
-			want := tc.want
-			if diff := cmp.Diff(want, got); diff != "" {
-				t.Error(diff)
-			}
-		})
-	}
-}
-
 func TestPart2(t *testing.T) {
 	tests := []struct {
 		input []string
