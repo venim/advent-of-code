@@ -3,7 +3,6 @@ package main
 import (
 	_ "embed"
 	"flag"
-	"math"
 	"slices"
 	"strings"
 	"time"
@@ -18,10 +17,9 @@ var (
 )
 
 type JunctionBox struct {
-	X       int
-	Y       int
-	Z       int
-	Circuit int
+	X int
+	Y int
+	Z int
 }
 
 func NewJunctionBox(in string) *JunctionBox {
@@ -33,173 +31,153 @@ func NewJunctionBox(in string) *JunctionBox {
 	}
 }
 
-func (a *JunctionBox) distance(b *JunctionBox) float64 {
-	return math.Sqrt(
-		math.Pow(float64(b.X-a.X), 2) +
-			math.Pow(float64(b.Y-a.Y), 2) +
-			math.Pow(float64(b.Z-a.Z), 2))
+func (a *JunctionBox) distSq(b *JunctionBox) int {
+	dx := a.X - b.X
+	dy := a.Y - b.Y
+	dz := a.Z - b.Z
+	return dx*dx + dy*dy + dz*dz
 }
 
 type Distance struct {
-	n   float64
-	jbs map[*JunctionBox]bool
+	u, v int
+	sq   int
+}
+
+func prepare(lines []string) ([]*JunctionBox, []Distance) {
+	var jboxes []*JunctionBox
+	for _, l := range lines {
+		jboxes = append(jboxes, NewJunctionBox(l))
+	}
+
+	n := len(jboxes)
+	distances := make([]Distance, 0, n*(n-1)/2)
+
+	for i := 0; i < n; i++ {
+		for j := i + 1; j < n; j++ {
+			distances = append(distances, Distance{
+				u:  i,
+				v:  j,
+				sq: jboxes[i].distSq(jboxes[j]),
+			})
+		}
+	}
+
+	slices.SortFunc(distances, func(a, b Distance) int {
+		return a.sq - b.sq
+	})
+
+	return jboxes, distances
+}
+
+func run(jboxes []*JunctionBox, distances []Distance, cb func(step int, numComponents int, getSizes func() []int, getMergedGroup func() ([]int, int)) (int, bool)) int {
+	parent := make([]int, len(jboxes))
+	nodes := make([][]int, len(jboxes))
+	for i := range jboxes {
+		parent[i] = i
+		nodes[i] = []int{i}
+	}
+
+	find := func(i int) int {
+		root := i
+		for parent[root] != root {
+			root = parent[root]
+		}
+		curr := i
+		for curr != root {
+			next := parent[curr]
+			parent[curr] = root
+			curr = next
+		}
+		return root
+	}
+
+	numComponents := len(jboxes)
+
+	for step, d := range distances {
+		rootU := find(d.u)
+		rootV := find(d.v)
+
+		var lastMergedNodes []int
+		var bridgeNode int
+
+		if rootU != rootV {
+			var smallRoot, largeRoot int
+			var largeEndpoint int
+
+			if len(nodes[rootU]) < len(nodes[rootV]) {
+				smallRoot, largeRoot = rootU, rootV
+				largeEndpoint = d.v
+			} else {
+				smallRoot, largeRoot = rootV, rootU
+				largeEndpoint = d.u
+			}
+
+			parent[smallRoot] = largeRoot
+
+			// Capture data for Part 2 before merging
+			lastMergedNodes = nodes[smallRoot]
+			bridgeNode = largeEndpoint
+
+			nodes[largeRoot] = append(nodes[largeRoot], nodes[smallRoot]...)
+			nodes[smallRoot] = nil // Release memory
+
+			numComponents--
+		}
+
+		if res, done := cb(step, numComponents, func() []int {
+			sizes := make([]int, 0, numComponents)
+			for i, p := range parent {
+				if p == i && len(nodes[i]) > 0 {
+					sizes = append(sizes, len(nodes[i]))
+				}
+			}
+			return sizes
+		}, func() ([]int, int) {
+			return lastMergedNodes, bridgeNode
+		}); done {
+			return res
+		}
+	}
+	return 0
 }
 
 func part1(lines []string, nTimes int) (res int) {
-	var jboxes []*JunctionBox
-	for _, l := range lines {
-		jboxes = append(jboxes, NewJunctionBox(l))
-	}
-
-	var distances = []Distance{}
-	for i := range jboxes {
-		for j := i + 1; j < len(jboxes); j++ {
-			start, end := jboxes[i], jboxes[j]
-			n := start.distance(end)
-			distances = append(distances, Distance{
-				n: n,
-				jbs: map[*JunctionBox]bool{
-					start: true,
-					end:   true,
-				},
-			})
-		}
-	}
-
-	slices.SortStableFunc(distances, func(a, b Distance) int {
-		if a.n < b.n {
-			return -1
-		}
-		if a.n > b.n {
-			return 1
-		}
-		return 0
-	})
-
-	nextCircuit := 1
-	circuits := map[int]map[*JunctionBox]bool{}
-	for range nTimes {
-		d := distances[0]
-		distances = distances[1:]
-
-		activeCircuit := 0
-		// see if any jbox is connected
-		connected := false
-		for jb := range d.jbs {
-			if jb.Circuit != 0 {
-				if connected && jb.Circuit != activeCircuit {
-					// merge...
-					for jb := range circuits[jb.Circuit] {
-						d.jbs[jb] = true
-					}
-					delete(circuits, jb.Circuit)
-				} else {
-					activeCircuit = jb.Circuit
-					connected = true
-				}
+	jboxes, distances := prepare(lines)
+	return run(jboxes, distances, func(step int, numComponents int, getSizes func() []int, getMergedGroup func() ([]int, int)) (int, bool) {
+		if step == nTimes-1 {
+			counts := getSizes()
+			slices.Sort(counts)
+			res = 1
+			start := len(counts) - 3
+			if start < 0 {
+				start = 0
 			}
+			for i := len(counts) - 1; i >= start; i-- {
+				res *= counts[i]
+			}
+			return res, true
 		}
-		// if not connected, create a new circuit
-		if activeCircuit == 0 {
-			activeCircuit = nextCircuit
-			nextCircuit++
-			circuits[activeCircuit] = map[*JunctionBox]bool{}
-		}
-		// set the circuit for all jboxes
-		for jb := range d.jbs {
-			jb.Circuit = activeCircuit
-			circuits[activeCircuit][jb] = true
-		}
-	}
-
-	var counts []int
-	for c := range circuits {
-		counts = append(counts, len(circuits[c]))
-	}
-
-	slices.Sort(counts)
-	res = 1
-	for i := len(counts) - 1; i > len(counts)-4; i-- {
-		res *= counts[i]
-	}
-
-	return
+		return 0, false
+	})
 }
 
 func part2(lines []string) (res int) {
-	var jboxes []*JunctionBox
-	for _, l := range lines {
-		jboxes = append(jboxes, NewJunctionBox(l))
-	}
-
-	var distances = []Distance{}
-	for i := range jboxes {
-		for j := i + 1; j < len(jboxes); j++ {
-			start, end := jboxes[i], jboxes[j]
-			n := start.distance(end)
-			distances = append(distances, Distance{
-				n: n,
-				jbs: map[*JunctionBox]bool{
-					start: true,
-					end:   true,
-				},
-			})
-		}
-	}
-
-	slices.SortStableFunc(distances, func(a, b Distance) int {
-		if a.n < b.n {
-			return -1
-		}
-		if a.n > b.n {
-			return 1
-		}
-		return 0
-	})
-
-	nextCircuit := 1
-	circuits := map[int]map[*JunctionBox]bool{}
-	for len(distances) > 0 {
-		d := distances[0]
-		distances = distances[1:]
-
-		activeCircuit := 0
-		// see if any jbox is connected
-		connected := false
-		for jb := range d.jbs {
-			if jb.Circuit != 0 {
-				if connected && jb.Circuit != activeCircuit {
-					// merge...
-					for jb := range circuits[jb.Circuit] {
-						d.jbs[jb] = true
-					}
-					delete(circuits, jb.Circuit)
-				} else {
-					activeCircuit = jb.Circuit
-					connected = true
+	jboxes, distances := prepare(lines)
+	return run(jboxes, distances, func(step int, numComponents int, getSizes func() []int, getMergedGroup func() ([]int, int)) (int, bool) {
+		if numComponents == 1 {
+			mergedNodes, bridge := getMergedGroup()
+			// Should always have a merge if we just hit 1 component
+			if mergedNodes != nil {
+				res = 1
+				for _, idx := range mergedNodes {
+					res *= jboxes[idx].X
 				}
+				res *= jboxes[bridge].X
+				return res, true
 			}
 		}
-		// if not connected, create a new circuit
-		if activeCircuit == 0 {
-			activeCircuit = nextCircuit
-			nextCircuit++
-			circuits[activeCircuit] = map[*JunctionBox]bool{}
-		}
-		// set the circuit for all jboxes
-		for jb := range d.jbs {
-			jb.Circuit = activeCircuit
-			circuits[activeCircuit][jb] = true
-		}
-		if len(circuits) == 1 && len(circuits[activeCircuit]) == len(jboxes) {
-			res = 1
-			for jb := range d.jbs {
-				res *= jb.X
-			}
-			return
-		}
-	}
-	return
+		return 0, false
+	})
 }
 
 func init() {
