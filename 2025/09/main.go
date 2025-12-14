@@ -3,7 +3,7 @@ package main
 import (
 	_ "embed"
 	"flag"
-	"fmt"
+	"math/bits"
 	"strings"
 	"time"
 
@@ -16,6 +16,19 @@ var (
 	input string
 )
 
+// parseInput converts the input lines into a slice of positions and finds the maximum Y coordinate.
+func parseInput(lines []string) (tiles []util.Pos, maxY int) {
+	for _, l := range lines {
+		p := strings.Split(l, ",")
+		y := util.MustAtoi(p[1])
+		if y > maxY {
+			maxY = y
+		}
+		tiles = append(tiles, util.Pos{X: util.MustAtoi(p[0]), Y: y})
+	}
+	return
+}
+
 func abs(i int) int {
 	if i < 0 {
 		return -i
@@ -23,112 +36,171 @@ func abs(i int) int {
 	return i
 }
 
-func area(a, b util.Pos) int {
-	x := abs(a.X-b.X) + 1
-	y := abs(a.Y-b.Y) + 1
-
-	return x * y
+func calcArea(a, b util.Pos) int {
+	return (abs(a.X-b.X) + 1) * (abs(a.Y-b.Y) + 1)
 }
 
 func part1(lines []string) (res int) {
-	var tiles []util.Pos
-	for _, l := range lines {
-		p := strings.Split(l, ",")
-		tiles = append(tiles, util.Pos{X: util.MustAtoi(p[0]), Y: util.MustAtoi(p[1])})
-	}
-
-	for i := 0; i < len(tiles); i++ {
+	tiles, _ := parseInput(lines)
+	for i := range tiles {
 		for j := i + 1; j < len(tiles); j++ {
-			area := area(tiles[i], tiles[j])
-			res = max(area, res)
+			if a := calcArea(tiles[i], tiles[j]); a > res {
+				res = a
+			}
 		}
 	}
-
 	return
 }
 
-func area2(a, b util.Pos, valid map[util.Pos]bool) int {
-	if valid[util.Pos{a.X, b.Y}] && valid[util.Pos{b.X, a.Y}] {
-		x := abs(a.X-b.X) + 1
-		y := abs(a.Y-b.Y) + 1
-
-		return x * y
-	}
-	return 0
+// PolygonChecker efficiently checks if a vertical range is valid within the polygon.
+type PolygonChecker struct {
+	stMin *SparseTable // Range Max Query on Left Walls
+	stMax *SparseTable // Range Min Query on Right Walls
 }
 
-func printValid(x, y int, valid map[util.Pos]bool) {
-	for j := 0; j <= y+1; j++ {
-		for i := 0; i <= x+1; i++ {
-			if valid[util.Pos{i, j}] {
-				fmt.Print("X")
-			} else {
-				fmt.Print(".")
-			}
-			fmt.Print(" ")
-		}
-		fmt.Println()
+func NewPolygonChecker(tiles []util.Pos, maxY int) *PolygonChecker {
+	// 1. Initialize Scanlines
+	const inf = int(^uint(0) >> 1)
+	const negInf = -inf - 1
+
+	minXs := make([]int, maxY+1)
+	maxXs := make([]int, maxY+1)
+	for i := range minXs {
+		minXs[i] = inf
+		maxXs[i] = negInf
 	}
+
+	// 2. Fill Scanlines (Trace edges)
+	n := len(tiles)
+	for i := range n {
+		p1, p2 := tiles[i], tiles[(i+1)%n]
+
+		if p1.X == p2.X { // Vertical Edge
+			yStart, yEnd := p1.Y, p2.Y
+			if yStart > yEnd {
+				yStart, yEnd = yEnd, yStart
+			}
+			for y := yStart; y <= yEnd; y++ {
+				if p1.X < minXs[y] {
+					minXs[y] = p1.X
+				}
+				if p1.X > maxXs[y] {
+					maxXs[y] = p1.X
+				}
+			}
+		} else { // Horizontal Edge
+			// For horizontal edges, the X range is valid at this specific Y.
+			// However, the "walls" logic is primarily defined by vertical boundaries.
+			// A horizontal edge connects two vertical walls.
+			// We strictly update the min/max for the single row Y.
+			xStart, xEnd := p1.X, p2.X
+			if xStart > xEnd {
+				xStart, xEnd = xEnd, xStart
+			}
+			y := p1.Y
+			if xStart < minXs[y] {
+				minXs[y] = xStart
+			}
+			if xEnd > maxXs[y] {
+				maxXs[y] = xEnd
+			}
+		}
+	}
+
+	// 3. Build Sparse Tables
+	// We want the Rightmost Left-Wall (Max of minXs)
+	// We want the Leftmost Right-Wall (Min of maxXs)
+	return &PolygonChecker{
+		stMin: NewSparseTable(minXs, func(a, b int) int { return max(a, b) }),
+		stMax: NewSparseTable(maxXs, func(a, b int) int { return min(a, b) }),
+	}
+}
+
+// IsValidRect checks if the rectangle defined by x1, x2 and y1, y2 is strictly inside the polygon.
+// It assumes x1 <= x2 and y1 <= y2.
+func (pc *PolygonChecker) IsValidRect(x1, x2, y1, y2 int) bool {
+	// The polygon narrows to [limitL, limitR] over the range [y1, y2].
+	// Our rectangle [x1, x2] must fit inside this narrowest point.
+	limitL := pc.stMin.Query(y1, y2)
+	limitR := pc.stMax.Query(y1, y2)
+	return limitL <= x1 && x2 <= limitR
 }
 
 func part2(lines []string) (res int) {
-	maxX, maxY := 0, 0
-	var tiles []util.Pos
-	for _, l := range lines {
-		parts := strings.Split(l, ",")
-		pos := util.Pos{X: util.MustAtoi(parts[0]), Y: util.MustAtoi(parts[1])}
-		maxX = max(maxX, pos.X)
-		maxY = max(maxY, pos.Y)
-		tiles = append(tiles, pos)
-	}
+	tiles, maxY := parseInput(lines)
+	pc := NewPolygonChecker(tiles, maxY)
 
-	valid := map[util.Pos]bool{}
-	rows := make([]*util.Pos, maxY+2)
-
-	for i := 0; i < len(tiles); i++ {
-		a := tiles[i]
-		b := tiles[0]
-		if i+1 != len(tiles) {
-			b = tiles[i+1]
-		}
-
-		if a.X == b.X {
-			for i := min(a.Y, b.Y); i <= max(a.Y, b.Y); i++ {
-				valid[util.Pos{a.X, i}] = true
-			}
-		} else {
-			for i := min(a.X, b.X); i <= max(a.X, b.X); i++ {
-				valid[util.Pos{i, a.Y}] = true
-			}
-		}
-	}
-
-	for t := range valid {
-		if rows[t.Y] == nil {
-			rows[t.Y] = &util.Pos{t.X, t.X}
-		} else {
-			rows[t.Y].X = min(rows[t.Y].X, t.X)
-			rows[t.Y].Y = max(rows[t.Y].Y, t.X)
-		}
-	}
-
-	for y, r := range rows {
-		if r == nil {
-			continue
-		}
-		for x := r.X; x <= r.Y; x++ {
-			valid[util.Pos{x, y}] = true
-		}
-	}
-
-	for i := 0; i < len(tiles); i++ {
+	for i := range tiles {
+		p1 := tiles[i]
 		for j := i + 1; j < len(tiles); j++ {
-			area := area2(tiles[i], tiles[j], valid)
-			res = max(area, res)
+			p2 := tiles[j]
+
+			// Pre-calculate dimensions
+			w := p1.X - p2.X
+			if w < 0 {
+				w = -w
+			}
+			w++
+
+			h := p1.Y - p2.Y
+			if h < 0 {
+				h = -h
+			}
+			h++
+
+			area := w * h
+			if area <= res {
+				continue
+			}
+
+			// Sort coords for the check
+			x1, x2 := p1.X, p2.X
+			if x1 > x2 {
+				x1, x2 = x2, x1
+			}
+			y1, y2 := p1.Y, p2.Y
+			if y1 > y2 {
+				y1, y2 = y2, y1
+			}
+
+			if pc.IsValidRect(x1, x2, y1, y2) {
+				res = area
+			}
 		}
 	}
-
 	return
+}
+
+// --- Sparse Table Implementation ---
+
+type SparseTable struct {
+	data [][]int
+	op   func(int, int) int
+}
+
+func NewSparseTable(arr []int, op func(int, int) int) *SparseTable {
+	n := len(arr)
+	k := bits.Len(uint(n))
+	data := make([][]int, k)
+	data[0] = make([]int, n)
+	copy(data[0], arr)
+
+	for i := 1; i < k; i++ {
+		data[i] = make([]int, n-(1<<i)+1)
+		prev := data[i-1]
+		curr := data[i]
+		offset := 1 << (i - 1)
+		for j := 0; j <= n-(1<<i); j++ {
+			curr[j] = op(prev[j], prev[j+offset])
+		}
+	}
+	return &SparseTable{data: data, op: op}
+}
+
+func (st *SparseTable) Query(l, r int) int {
+	len := r - l + 1
+	k := bits.Len(uint(len)) - 1
+	return st.op(st.data[k][l], st.data[k][r-(1<<k)+1])
 }
 
 func init() {

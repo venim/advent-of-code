@@ -39,7 +39,7 @@ func TestCalc(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
-			got := area(tc.a, tc.b)
+			got := calcArea(tc.a, tc.b)
 			want := tc.area
 			if diff := cmp.Diff(want, got); diff != "" {
 				t.Error(diff)
@@ -84,7 +84,7 @@ func TestPart2(t *testing.T) {
 		},
 		{
 			input: strings.Split(input, "\n"),
-			want:  0,
+			want:  1540192500,
 		},
 	}
 	for _, tc := range tests {
